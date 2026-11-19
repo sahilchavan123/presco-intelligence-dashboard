@@ -372,3 +372,29 @@ section[role="tabpanel"]:not(.hidden) { animation: none; }
   .mgmt-table th,
   .mgmt-table td { padding: 7px 6px; }
 }
+
+/* ---- marketing management ---- */
+nav.tabs #t-mkexec{--ico:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%226%22/%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%222%22/%3E%3C/svg%3E")}
+nav.tabs #t-mkrec{--ico:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%228%22 y=%222%22 width=%228%22 height=%224%22 rx=%221%22/%3E%3Cpath d=%22M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2%22/%3E%3Cpath d=%22M12 11h4%22/%3E%3Cpath d=%22M12 16h4%22/%3E%3C/svg%3E")}
+nav.tabs #t-mkacq{--ico:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2%22/%3E%3Ccircle cx=%229%22 cy=%227%22 r=%224%22/%3E%3Cline x1=%2219%22 y1=%228%22 x2=%2219%22 y2=%2214%22/%3E%3Cline x1=%2222%22 y1=%2211%22 x2=%2216%22 y2=%2211%22/%3E%3C/svg%3E")}
+/* ---- v9: marketing management ---- */
+.mkbar{position:relative;height:8px;background:#E2E8F0;border-radius:6px;margin-top:6px}
+.mkbar i{position:absolute;left:0;top:0;bottom:0;background:#14B8A6;border-radius:6px}
+.mkbar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:#0F1731}
+.pf-v.ok2{background:#E0F2FE;color:#0369A1;border-color:#BAE6FD}
+@media print{#side,#subnav,.kpiwrap,.controls,#toTop,#cmdk{display:none!important}#app{padding-left:0!important}}
+/* ---- v10: marketing scorecard ---- */
+.mkhead,.mkrow{display:grid;grid-template-columns:34px minmax(150px,1.3fr) minmax(180px,2.4fr) 70px minmax(130px,1fr);gap:16px;align-items:center}
+.mkhead{font:600 10.5px Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#64748B;padding:8px 6px;border-bottom:1px solid #E5EAF0}
+.mkrow{padding:11px 6px;border-bottom:1px solid #F1F5F9;cursor:pointer}
+.mkrow:hover{background:#F8FAFC}
+.mkrow.done{background:#F0FDFA}
+.mkrow .mkt,.mkt{display:block;font-size:12px;color:#64748B;margin-top:3px}
+.mkpct{font-size:18px;text-align:right}
+.mkhl{display:flex;flex-wrap:wrap;gap:6px 24px;font-size:13px;color:#334155;margin-top:12px;padding:10px 12px;background:#F1F5F9;border-radius:10px}
+.mkbar{height:9px}
+@media (max-width:800px){.mkhead{display:none}.mkrow{grid-template-columns:28px 1fr 60px}.mkrow>div:nth-child(3){grid-column:1/-1;order:5}.mkrow>div:nth-child(5){grid-column:1/-1;order:6}}
+
+/* ---- v8: league table, comparison columns only ---- */
+.xcol{display:none!important}
+#p-league .tag.loc{display:none}

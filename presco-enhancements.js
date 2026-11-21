@@ -525,6 +525,7 @@
 
   /* click a department row to open a drop-down of its doctors */
   function attachDeptDrill(root, rows) {
+    return; /* department rows now open the department report card (see the end of this file) */
     const dt = [...root.querySelectorAll('table')].find(t => t.tHead && t.tHead.rows[0] && t.tHead.rows[0].cells[0].textContent.trim() === 'Department');
     if (!dt || !dt.tBodies[0]) return;
     const nice = t => String(t || '—').toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase());
@@ -1400,4 +1401,95 @@
   const prev = window.__PRESCO_ENHANCER_READY;
   window.__PRESCO_ENHANCER_READY = payload => { if (typeof prev === 'function') prev(payload); XR = payload || XR; renderAll(); };
   document.addEventListener('click', e => { const b = e.target.closest('button[role="tab"]'); if (b && TABS[b.id] && XR.store) setTimeout(() => draw(TABS[b.id]), 0); });
+})();
+
+/* =====================================================================
+   DEPARTMENT REPORT CARD
+   Click a department anywhere (tables, doctor lists, Departments tab) to open a report
+   like the doctor report card: revenue, OPD, admissions, discharges, OP billing,
+   bill register, doctors in the department and day by day.
+   ===================================================================== */
+(function () {
+  'use strict';
+  let RT = { store: null, getBillRows: null, data: null }, PD = 'all', CUR = '', docDept = {}, deptSet = new Set();
+  const N = n => Math.round(n || 0).toLocaleString('en-IN');
+  const C = n => { const a = Math.abs(n || 0); return a >= 1e7 ? (n / 1e7).toFixed(2) + ' Cr' : a >= 1e5 ? (n / 1e5).toFixed(2) + ' L' : N(n); };
+  const RS = n => '₹' + C(n), q = t => String(t == null ? '' : t).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const pct = (a, b) => b ? (100 * a / b).toFixed(1) + '%' : '—';
+  const norm = s => String(s || '').toLowerCase().replace(/[^a-z]+/g, ' ').trim();
+  const ALIAS = { 'arthroscopy orthopaedics': 'orthopaedics', 'clinical cardiology': 'cardiology', 'medical gastro enterology': 'gastroenterology', 'laparoscopic surgeon': 'general surgery', 'clinical immunology': 'rheumatology', 'dmo': 'casualty', 'casualty and emergency': 'casualty', 'casualty emergency': 'casualty', 'casualty': 'casualty' };
+  const dk = s => { const n = norm(s).replace(/ & /g, ' and '); return ALIAS[n] || n; };
+  const lastSnap = () => ((RT.store && RT.store.snapshots) || []).filter(s => s.data && s.data.doctors && s.data.depts).sort((a, b) => a.asOf < b.asOf ? -1 : 1).pop();
+  const addDays = (iso, n) => new Date(Date.parse(iso + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
+  const dl = iso => new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' + new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' });
+  const kv = (l, v, n, tone) => `<div class="card"><p class="note" style="margin:0">${l}</p><p class="kpi" style="font-size:24px${tone ? ';color:' + tone : ''}">${v}</p><p class="note" style="margin:0">${n || '&nbsp;'}</p></div>`;
+  const index = () => {
+    const s = lastSnap(); docDept = {}; deptSet = new Set(); if (!s) return; s.data.depts.forEach(d => deptSet.add(dk(d.name)));
+    s.data.doctors.slice().sort((a, b) => (b.ytd || 0) - (a.ytd || 0)).forEach(d => { const k = norm(d.name); if (k && !docDept[k]) docDept[k] = dk(d.dept); });
+  };
+  const isDept = n => deptSet.has(dk(n));
+  const of = ck => docDept[norm(ck)];
+
+  function report(name) {
+    const s = lastSnap(); if (!s) return null; const key = dk(name), asOf = s.asOf, st = RT.store;
+    const from = PD === 'all' ? '' : PD === 'month' ? asOf.slice(0, 8) + '01' : addDays(asOf, -(+PD - 1)), inP = d => (!from || d >= from) && d <= asOf;
+    const drec = s.data.depts.find(d => dk(d.name) === key), docs = s.data.doctors.filter(d => dk(d.dept) === key);
+    const opd = (st.opdDays || []).filter(d => inP(d.date)).map(d => { let v = 0, n = 0; Object.values(d.docs || {}).forEach(x => { if (dk(x.dept) === key) { v += x.v || 0; n += x.n || 0; } }); return { d: d.date, v, n }; }).filter(x => x.v > 0);
+    const adm = (st.adm || []).filter(a => inP(a.date) && of(a.ck) === key), emg = a => /emerg|mlc/i.test(a.type || '');
+    const disc = (st.disc || []).filter(d => inP(d.ddate) && of(d.ck) === key), opb = (st.opBills || []).filter(b => inP(b.date) && of(b.ck) === key);
+    const reg = (RT.getBillRows ? RT.getBillRows() : []).filter(r => (!r.st || r.st === 'A') && dk(r.dept) === key && inP(r.bdate));
+    const opdDates = new Set(opd.map(x => x.d)), opN = opd.reduce((a, x) => a + x.v, 0), newR = opd.reduce((a, x) => a + x.n, 0);
+    const admShared = adm.filter(a => opdDates.has(a.date)), admDays = new Set(adm.map(a => a.date)).size;
+    const stay = disc.map(d => +d.stay).filter(v => !isNaN(v)), alos = stay.length ? stay.reduce((a, b) => a + b, 0) / stay.length : null;
+    const icu = disc.filter(d => /ICU/i.test((d.ward || '') + ' ' + (d.wcls || ''))), expired = disc.filter(d => /expir/i.test(d.dtype || '')), lama = disc.filter(d => /lama|dama/i.test(d.dtype || '')), noBill = disc.filter(d => !d.bill);
+    const gross = opb.reduce((a, b) => a + (+b.gross || 0), 0), conc = opb.reduce((a, b) => a + (+b.conc || 0), 0), rcpt = opb.reduce((a, b) => a + (+b.rcpt || 0), 0);
+    const bt = {}; reg.forEach(r => { bt[r.type] = (bt[r.type] || 0) + (r.net || 0); });
+    const day = {}, put = (d, f, v) => { (day[d] = day[d] || { v: 0, n: 0, a: 0, e: 0, rev: null })[f] += v; };
+    opd.forEach(x => { put(x.d, 'v', x.v); put(x.d, 'n', x.n); }); adm.forEach(a => { put(a.date, 'a', 1); if (emg(a)) put(a.date, 'e', 1); });
+    (st.days || []).filter(d => inP(d.date)).forEach(d => { let t = null; Object.entries(d.depts || {}).forEach(([k, v]) => { if (dk(k) === key) t = (t || 0) + v; }); if (t != null) { day[d.date] = day[d.date] || { v: 0, n: 0, a: 0, e: 0 }; day[d.date].rev = t; } });
+    const dates = Object.keys(day).sort().reverse().slice(0, 14);
+    return { name: drec ? drec.name : name, asOf, from, drec, docs, opN, newR, opdDays: opd.length, adm, emgN: adm.filter(emg).length, admDays, admShared, opShared: opd.filter(x => true).reduce((a, x) => a + x.v, 0), disc, alos, stayN: stay.reduce((a, b) => a + b, 0), icu, expired, lama, noBill, dueSum: disc.reduce((a, d) => a + (+d.due || 0), 0), opb, gross, conc, rcpt, reg, bt, day, dates };
+  }
+  function html(R) {
+    const d = R.drec || {}, mtdVs = d.ytdAvg ? 100 * (d.mtdAvg - d.ytdAvg) / d.ytdAvg : null, ytdVs = d.lyytd ? 100 * (d.ytd - d.lyytd) / d.lyytd : null;
+    const per = [['all', 'All days on file'], ['7', 'Last 7 days'], ['14', 'Last 14 days'], ['30', 'Last 30 days'], ['month', 'This month']].map(p => `<option value="${p[0]}"${PD === p[0] ? ' selected' : ''}>${p[1]}</option>`).join('');
+    const pnt = v => v == null ? '' : `<span class="${v >= 0 ? 'up' : 'down'}">${v >= 0 ? '+' : ''}${v.toFixed(1)}%</span>`;
+    const opShared = R.opdDays ? R.admShared.length : 0, opOnShared = R.opN;
+    const maxD = Math.max(...R.docs.map(x => x.mtd || 0), 1), totM = R.docs.reduce((a, x) => a + (x.mtd || 0), 0) || 1;
+    return `<div class="drillhead"><div><h2>${q(R.name)}</h2><p class="note" style="margin:2px 0 0">Department · ${N(R.docs.length)} doctors on file · ${N(R.drec ? R.drec.activeCount : 0)} active</p></div><button type="button" class="btn ghost sm" data-dclose>Close</button></div>
+    <div class="controls" style="margin-bottom:12px"><div class="field"><label>Period</label><select id="dprd">${per}</select></div><span class="note" style="align-self:end;margin:0 0 6px">${R.from ? 'showing ' + R.from + ' to ' + R.asOf : 'showing every day on file, as on ' + R.asOf}</span></div>
+    <div class="grid3">${kv('Billed today, ' + R.asOf, d.today != null ? RS(d.today) : '—', d.today != null ? 'yesterday ' + RS(d.yest) : 'no daily closing')}${kv('Month to date', d.mtd != null ? RS(d.mtd) : '—', d.mtdAvg ? RS(d.mtdAvg) + ' a day · ' + (mtdVs == null ? '' : pnt(mtdVs) + ' vs the YTD average') : '')}${kv('Year to date', d.ytd != null ? RS(d.ytd) : '—', ytdVs == null ? '' : pnt(ytdVs) + ' against last year')}</div>
+    <div class="grid3">${kv('OP consultations held', N(R.opN), N(R.opdDays) + ' days on file · ' + pct(R.newR, R.opN) + ' new registrations')}${kv('IP admissions held', N(R.adm.length), N(R.admDays) + ' days with an admission · ' + N(R.emgN) + ' emergency (' + pct(R.emgN, R.adm.length) + ')')}${kv('OP to IP conversion', R.opN ? (100 * R.admShared.length / R.opN).toFixed(1) + '%' : '—', N(R.admShared.length) + ' admissions from ' + N(R.opN) + ' consultations on shared days')}</div>
+    <div class="grid3">${kv('IP discharges held', N(R.disc.length), R.alos == null ? 'no stay data' : 'ALOS ' + R.alos.toFixed(1) + ' days · ' + N(R.stayN) + ' patient-days')}${kv('Discharged from ICU', N(R.icu.length), pct(R.icu.length, R.disc.length) + ' of their discharges')}${kv('Expired / LAMA-DAMA', `<span style="color:${R.expired.length ? '#B91C1C' : 'inherit'}">${N(R.expired.length)}</span> / ${N(R.lama.length)}`, 'due at discharge ' + RS(R.dueSum) + ' · ' + N(R.noBill.length) + ' without a final bill')}</div>
+    <div class="grid3">${kv('OP billing held', RS(R.gross), N(R.opb.length) + ' bills · average ' + (R.opb.length ? '₹' + N(R.gross / R.opb.length) : '—'))}${kv('Collected / concession', RS(R.rcpt), pct(R.rcpt, R.gross) + ' realised · concession ' + RS(R.conc) + ' (' + pct(R.conc, R.gross) + ')')}${kv('Gross per OP consultation', R.opN ? '₹' + N(R.gross / R.opN) : '—', RS(R.gross) + ' over ' + N(R.opN) + ' consultations')}</div>
+    <div class="card" style="margin-top:12px"><h2>Bill register</h2><div class="grid3" style="margin:0 0 10px"><div><p class="note" style="margin:0">Net billing</p><p class="kpi" style="font-size:20px">${RS(R.reg.reduce((a, r) => a + (r.net || 0), 0))}</p></div><div><p class="note" style="margin:0">Consultations / registrations</p><p class="kpi" style="font-size:20px">${N(R.reg.filter(r => /consult/i.test(r.type)).length)} / ${N(R.reg.filter(r => /registration/i.test(r.type)).length)}</p></div><div><p class="note" style="margin:0">Receipts / due</p><p class="kpi" style="font-size:20px">${RS(R.reg.reduce((a, r) => a + (r.trcpt || 0), 0))} / ${RS(R.reg.reduce((a, r) => a + (r.tout || 0), 0))}</p></div></div>
+    ${Object.keys(R.bt).length ? `<table class="btx"><thead><tr><th class="l">Bill type</th><th>Net</th></tr></thead><tbody>${Object.entries(R.bt).sort((a, b) => b[1] - a[1]).slice(0, 14).map(([t, v]) => `<tr><td class="l">${q(t)}</td><td class="${v < 0 ? 'down' : ''}">${N(v)}</td></tr>`).join('')}</tbody></table>` : '<p class="note">No bill register rows for this department and period.</p>'}</div>
+    <div class="card" style="margin-top:12px"><h2>Doctors in this department</h2><p class="note">Month to date from the management report. Click a doctor to open the doctor report.</p><div class="lgscroll" style="max-height:360px"><table><thead><tr><th class="l">Doctor</th><th>Month to date</th><th>Share</th><th>Year to date</th><th>vs last year</th><th>OPD visits</th></tr></thead><tbody>${R.docs.slice().sort((a, b) => (b.mtd || 0) - (a.mtd || 0)).map(x => `<tr><td class="l"><span class="docname" data-doc="${q(x.dept + '|' + x.name)}">${q(x.name)}</span></td><td><b>${N(x.mtd)}</b><span class="bar" style="width:${Math.max(2, 100 * (x.mtd || 0) / maxD)}%"></span></td><td>${pct(x.mtd, totM)}</td><td>${N(x.ytd)}</td><td>${x.lyytd ? pnt(100 * (x.ytd - x.lyytd) / x.lyytd) : '—'}</td><td>${N(x.visits)}</td></tr>`).join('')}</tbody></table></div></div>
+    <div class="card" style="margin-top:12px"><h2>Day by day</h2><p class="note">OP consultations and admissions of this department, most recent 14 days on file. Revenue shows a dash where no daily closing is held.</p><div class="lgscroll" style="max-height:420px"><table><thead><tr><th class="l">Date</th><th>OP</th><th>New</th><th>Admissions</th><th>Emergency</th><th>Per 100 OP</th><th>Revenue</th></tr></thead><tbody>${R.dates.map(dt => { const x = R.day[dt]; return `<tr><td class="l">${dl(dt)}</td><td>${N(x.v)}</td><td>${N(x.n)}</td><td>${N(x.a)}</td><td>${N(x.e)}</td><td>${x.v ? Math.round(100 * x.a / x.v) + '%' : '—'}</td><td>${x.rev != null ? N(x.rev) : '—'}</td></tr>`; }).join('') || '<tr><td class="l" colspan="7">No daily data in this period.</td></tr>'}</tbody></table></div></div>`;
+  }
+  function overlay() {
+    let o = document.getElementById('deptDrill'); if (!o) {
+      o = document.createElement('div'); o.id = 'deptDrill'; o.className = 'hidden'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Department report'); o.innerHTML = '<div class="drillbox"><div id="deptDrillBody"></div></div>';
+      o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-dclose]')) o.classList.add('hidden'); else if (e.target.closest('[data-doc]')) o.classList.add('hidden'); }); document.body.appendChild(o);
+    } return o;
+  }
+  function open(name) {
+    if (!RT.store) return; CUR = name; const R = report(name), o = overlay(); if (!R) return; document.getElementById('deptDrillBody').innerHTML = html(R); o.classList.remove('hidden'); o.scrollTop = 0;
+    const sel = document.getElementById('dprd'); if (sel) sel.onchange = () => { PD = sel.value; const keep = o.scrollTop; document.getElementById('deptDrillBody').innerHTML = html(report(CUR)); o.scrollTop = keep; const s2 = document.getElementById('dprd'); if (s2) s2.onchange = sel.onchange; };
+  }
+  function mark() {
+    if (!deptSet.size) return;
+    document.querySelectorAll('table').forEach(t => {
+      const h = t.tHead && t.tHead.rows[0] && t.tHead.rows[0].cells[0]; if (!h || h.textContent.trim() !== 'Department' || !t.tBodies[0]) return;
+      [...t.tBodies[0].rows].forEach(tr => { if (tr.dataset.deptReport || tr.classList.contains('xp-docs') || !tr.cells.length) return; const n = tr.cells[0].textContent.trim(); if (isDept(n)) { tr.dataset.deptReport = n; tr.classList.add('dept-click'); tr.title = 'Click for the department report'; } });
+    });
+    document.querySelectorAll('.deptTag:not([data-dept-report]), .pf-who span:not([data-dept-report])').forEach(el => { const n = el.textContent.split(' · ')[0].trim(); if (n && isDept(n)) { el.dataset.deptReport = n; el.classList.add('dept-click'); el.title = 'Click for the department report'; } });
+    document.querySelectorAll('details.dept > summary').forEach(sm => { if (sm.querySelector('.dept-rep')) return; const dn = sm.querySelector('.dname'), n = dn ? dn.textContent.trim() : ''; if (!isDept(n)) return; const b = document.createElement('button'); b.type = 'button'; b.className = 'dept-rep'; b.textContent = 'Department report'; b.dataset.deptReport = n; sm.appendChild(b); });
+  }
+  let raf = 0; const queue = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(mark); };
+  document.addEventListener('click', e => { const t = e.target.closest('[data-dept-report]'); if (!t || e.target.closest('[data-doc]') || e.target.closest('#deptDrill')) return; e.preventDefault(); e.stopPropagation(); PD = 'all'; open(t.dataset.deptReport); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = document.getElementById('deptDrill'); if (o) o.classList.add('hidden'); } });
+  const prev = window.__PRESCO_ENHANCER_READY;
+  window.__PRESCO_ENHANCER_READY = payload => { if (typeof prev === 'function') prev(payload); RT = payload || RT; index(); mark(); new MutationObserver(queue).observe(document.body, { childList: true, subtree: true }); };
+  window.__PRESCO_DEPT_REPORT = open;
 })();

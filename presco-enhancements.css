@@ -1203,3 +1203,48 @@ body.mini .sd-sub {
   text-transform: none;
   letter-spacing: 0
 }
+
+/* ---- department report card ---- */
+#deptDrill {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 20, .62);
+  z-index: 85;
+  overflow: auto;
+  padding: 28px 16px;
+  backdrop-filter: blur(2px)
+}
+
+#deptDrill.hidden {
+  display: none
+}
+
+.dept-click {
+  cursor: pointer
+}
+
+tr.dept-click:hover td {
+  background: #F0FDFA !important
+}
+
+.deptTag.dept-click:hover,
+.pf-who span.dept-click:hover {
+  color: #0F766E;
+  text-decoration: underline
+}
+
+.dept-rep {
+  margin-left: auto;
+  border: 1px solid #CBD5E1;
+  background: #fff;
+  color: #0F766E;
+  font: 600 11.5px Inter, sans-serif;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer
+}
+
+.dept-rep:hover {
+  background: #E6F6F3;
+  border-color: #14B8A6
+}

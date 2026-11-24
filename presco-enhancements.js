@@ -10,7 +10,7 @@
     'p-erbill': { root: 'erBillingDashboard', title: 'ER module billing' },
     'p-pharmbill': { root: 'pharmacyBillingDashboard', title: 'Pharmacy billing' }
   };
-  const GROUPS = Object.keys(PANELS).concat(['p-marketing', 'p-mkexec', 'p-mkrec', 'p-clov', 'p-clar', 'p-clpy', 'p-clrec', 'p-brc', 'p-newdoc', 'p-bdov', 'p-bdfc', 'p-bddp', 'p-bdwd']);
+  const GROUPS = Object.keys(PANELS).concat(['p-marketing', 'p-mkexec', 'p-mkrec', 'p-clov', 'p-clar', 'p-clpy', 'p-clrec', 'p-brc', 'p-newdoc', 'p-bdov', 'p-bdfc', 'p-bddp', 'p-bdwd', 'p-phov', 'p-phsa', 'p-phbr', 'p-phgr', 'p-phst', 'p-phit']);
   const logoSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 56"><circle cx="27" cy="28" r="17" fill="#22c7c9"/><path d="M27 18v20M17 28h20" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="4"/><text x="50" y="30" fill="#0f1731" font-family="Arial,sans-serif" font-size="25" font-weight="700">Presco</text><text x="51" y="42" fill="#0f766e" font-family="Arial,sans-serif" font-size="7" font-weight="700" letter-spacing="1">HOSPITAL OPERATING SYSTEM</text></svg>';
   const logoSrc = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(logoSvg);
   document.querySelectorAll('img[alt="Srikara Hospitals"]').forEach(img => {
@@ -154,7 +154,7 @@
       ${options.trend ? `<div class="mgmt-field"><label>Trend by</label>
         <select data-filter="grain" aria-label="Trend by">
           ${[['day', 'Day'], ['week', 'Week'], ['month', 'Month']].map(([value, label]) =>
-      `<option value="${value}"${filters.grain === value ? ' selected' : ''}>${label}</option>`).join('')}
+            `<option value="${value}"${filters.grain === value ? ' selected' : ''}>${label}</option>`).join('')}
         </select></div>` : ''}
       <div class="mgmt-actions"><button type="button" class="btn sm" data-action="apply">Apply filters</button>
         <button type="button" class="btn ghost sm" data-action="reset">Reset</button></div>
@@ -196,7 +196,7 @@
       if (norm(department) !== f.department) return false;
     }
     if (filters.payer && dimensions.payer &&
-      payerType(row[dimensions.payer], dimensions.companyType && row[dimensions.companyType]) !== filters.payer) return false;
+        payerType(row[dimensions.payer], dimensions.companyType && row[dimensions.companyType]) !== filters.payer) return false;
     return true;
   }
 
@@ -307,24 +307,24 @@
       })}
       <div class="mgmt-kpis">
         ${metric('Net billed', available ? money(sum(rows, 'net')) : 'Needs data integration',
-        'Sum of net amounts recorded for this billing category.', available ? '' : 'missing')}
+          'Sum of net amounts recorded for this billing category.', available ? '' : 'missing')}
         ${metric('Collected', available ? money(sum(rows, 'trcpt')) : 'Needs data integration',
           'Total receipt amount recorded in the register.', available ? '' : 'missing')}
         ${metric('Outstanding', available ? money(sum(rows, 'tout')) : 'Needs data integration',
-            'Total outstanding due amount recorded in the register.', available ? '' : 'missing')}
+          'Total outstanding due amount recorded in the register.', available ? '' : 'missing')}
         ${metric('Bill records', available ? integer(rows.length) : 'Needs data integration',
-              'Active matching bill rows after filters.', available ? '' : 'missing')}
+          'Active matching bill rows after filters.', available ? '' : 'missing')}
         ${metric('Unique patients', totalPatients == null ? 'Needs patient IDs' : integer(totalPatients),
-                'Distinct UMRs among matching bill rows.', totalPatients == null ? 'missing' : '')}
+          'Distinct UMRs among matching bill rows.', totalPatients == null ? 'missing' : '')}
       </div>
       <div class="mgmt-grid">
         ${card('Billing trend', 'Net billed amounts by day or month.', chart(trend, money, 14), true,
-                  grainButtons(config.panel, filters.grain))}
+          grainButtons(config.panel, filters.grain))}
         ${config.category === 'Pharmacy'
-        ? card('Pharmacy category summary', 'OP, Casualty, and IP pharmacy amounts shown separately.',
-          table(['Category', 'Bills', 'Patients', 'Net billed', 'Collected', 'Outstanding'], pharmacySummary),
-          true)
-        : ''}
+          ? card('Pharmacy category summary', 'OP, Casualty, and IP pharmacy amounts shown separately.',
+            table(['Category', 'Bills', 'Patients', 'Net billed', 'Collected', 'Outstanding'], pharmacySummary),
+            true)
+          : ''}
         ${available ? card('Department-wise', 'Click a department to see its doctors.', table(['Department', 'Patients', 'Bills', 'Revenue', 'Share', 'Collected', 'Outstanding'], revenueBreakdown(rows, row => row.dept, sum(rows, 'net')).slice(0, 25)), true) : ''}
         ${card('Bill type details', 'Counts and amounts by the bill type recorded in the register.',
           available
@@ -595,12 +595,12 @@
         ${sourceCount ? metric('ER revenue', compactMoney(sum(er, 'net')), share(sum(er, 'net'))) : metric('ER revenue', 'Needs data integration', 'Load ER bill-type records.', 'missing')}
         ${sourceCount ? metric('OP pharmacy revenue', compactMoney(sum(opdPharmacy, 'net')), share(sum(opdPharmacy, 'net'))) : metric('OP pharmacy revenue', 'Needs data integration', 'Load OP pharmacy bill types.', 'missing')}
         ${sourceCount ? metric('Total pharmacy revenue', compactMoney(sum(pharmacy, 'net')),
-        missingPharmacy.length ? `Missing ${missingPharmacy.join(' and ')} pharmacy records.` : share(sum(pharmacy, 'net')),
-        missingPharmacy.length ? 'partial' : '') : metric('Total pharmacy revenue', 'Needs data integration', 'Load OP, Casualty, and IP pharmacy bill types.', 'missing')}
+          missingPharmacy.length ? `Missing ${missingPharmacy.join(' and ')} pharmacy records.` : share(sum(pharmacy, 'net')),
+          missingPharmacy.length ? 'partial' : '') : metric('Total pharmacy revenue', 'Needs data integration', 'Load OP, Casualty, and IP pharmacy bill types.', 'missing')}
         ${patients == null ? metric('ARPP', sourceCount ? 'Needs patient IDs' : 'Needs data integration', 'Average revenue per distinct patient.', 'missing')
-        : metric('ARPP', patients ? money(total / patients) : '—', `${integer(patients)} unique patients in this selection.`)}
+          : metric('ARPP', patients ? money(total / patients) : '—', `${integer(patients)} unique patients in this selection.`)}
         ${alos == null ? metric('ALOS', 'Needs discharge data', 'Average length of stay for filtered discharges.', 'missing')
-        : metric('ALOS', alos.toFixed(1) + ' days', `${integer(discharges.length)} discharges in the selected date range and branch.`)}
+          : metric('ALOS', alos.toFixed(1) + ' days', `${integer(discharges.length)} discharges in the selected date range and branch.`)}
         ${opdConsult}
         ${arpobMetric}
         ${occMetric}
@@ -609,9 +609,9 @@
         ${card('Revenue trend', 'Daily, weekly, or monthly net billings, stacked by category.',
           stackedRevenueChart(rows, filters.grain), true)}
         ${card('Department-wise revenue', 'Patients, bills, revenue share, receipts, and outstanding by department.',
-            table(['Department', 'Patients', 'Bills', 'Revenue', 'Share', 'Collected', 'Outstanding'], departmentRows))}
+          table(['Department', 'Patients', 'Bills', 'Revenue', 'Share', 'Collected', 'Outstanding'], departmentRows))}
         ${card('Payer-wise revenue', 'Patients, bills, revenue share, receipts, and outstanding by payer type.',
-              table(['Payer', 'Patients', 'Bills', 'Revenue', 'Share', 'Collected', 'Outstanding'], payerRows))}
+          table(['Payer', 'Patients', 'Bills', 'Revenue', 'Share', 'Collected', 'Outstanding'], payerRows))}
       </div>
       <p class="mgmt-footnote">Revenue includes recognized active bill types and preserves signed refund values; canceled/inactive bills are excluded. ARPP is net revenue divided by distinct UMRs. ALOS is calculated from discharge stay days for the selected date range and branch. Pharmacy figures are partial when Casualty or IP pharmacy bill types are absent from the register.</p>`;
     attachDeptDrill(root, rows);
@@ -703,12 +703,12 @@
       return {
         revenueValue: revenue ? revenue.value : 0,
         cells: [
-          name,
-          integer(visitCount || 0),
-          integer(admission ? admission.count : 0),
-          integer(uniquePatients(sourceRows) || 0),
-          money(revenue ? revenue.value : 0),
-          text((sourceRows[0] && sourceRows[0].dept) || docDepartment(name) || '—')
+        name,
+        integer(visitCount || 0),
+        integer(admission ? admission.count : 0),
+        integer(uniquePatients(sourceRows) || 0),
+        money(revenue ? revenue.value : 0),
+        text((sourceRows[0] && sourceRows[0].dept) || docDepartment(name) || '—')
         ]
       };
     }).sort((a, b) => b.revenueValue - a.revenueValue).slice(0, 25).map(item => item.cells);
@@ -826,15 +826,15 @@
         ${card('Patient acquisition trend', 'New registrations by date or month.', chart(groupedDays, integer, 14), true, grainButtons('p-mkacq', filters.grain))}
         ${card('Branch-wise acquisition', 'New registrations by branch.', chart(branches, integer, 12))}
         ${card('Referral source performance', 'Unique patients and net billings attributed to loaded referral fields.',
-        referralAvailable ? table(['Referral source', 'Patients', 'Net revenue'], referralRevenue.slice(0, 12).map(item => [item.label, integer(item.patients), money(item.value)]))
-          : integration('Referral source fields are not populated in the loaded bill-type register. Load referral type/source and patient identifiers to enable this report.'))}
+          referralAvailable ? table(['Referral source', 'Patients', 'Net revenue'], referralRevenue.slice(0, 12).map(item => [item.label, integer(item.patients), money(item.value)]))
+            : integration('Referral source fields are not populated in the loaded bill-type register. Load referral type/source and patient identifiers to enable this report.'))}
         ${card('Doctor-wise referrals', 'Referral activity grouped by the consultant recorded on the bill.',
-            ref.doctors.length ? table(['Consultant', 'Referral records', 'Patients'], ref.doctors.slice(0, 12).map(item => [item.label, integer(item.value), integer(item.patients)]))
-              : integration('No consultant-linked referral records are available in this date range.'))}
+          ref.doctors.length ? table(['Consultant', 'Referral records', 'Patients'], ref.doctors.slice(0, 12).map(item => [item.label, integer(item.value), integer(item.patients)]))
+            : integration('No consultant-linked referral records are available in this date range.'))}
         ${card('Campaign performance', 'Campaign-attributed patients, revenue, and return on spend.',
-                integration('Requires campaign IDs, campaign spend, leads, and appointment/arrival attribution. No campaign figures are inferred from the current reports.'))}
+          integration('Requires campaign IDs, campaign spend, leads, and appointment/arrival attribution. No campaign figures are inferred from the current reports.'))}
         ${card('Patient conversion', 'Lead-to-appointment and appointment-to-visit trends.',
-                  integration('Requires lead, appointment, and visit event records with a shared patient or campaign key.'))}
+          integration('Requires lead, appointment, and visit event records with a shared patient or campaign key.'))}
       </div>
       <p class="mgmt-footnote">New and returning totals use the definitions supplied by the OPD statistics report. Referral counts and revenue are available only when the bill register carries referral source and UMR fields. A bill linked to both referral fields can appear under both sources, so source totals are not additive.</p>`;
   }
@@ -957,94 +957,94 @@
     host.addEventListener('mouseleave', () => { const el = tip(); if (el) el.classList.remove('on'); });
   };
 
-  /* ================= MARKETING MANAGEMENT =================
-     Marketing executives come from the bill register: referral type MARKETING, referral name = executive code.
-     Targets, employee details and status are entered here and kept in this browser (key presco-mk). */
-  const MK = { month: '', loc: '', exec: '', src: '', kind: '', gran: 'day', sort: 'ach', sel: '', q: '', st: 'all', more: false, go: 0, view: 'targets', open: 0 };
-  const MKS = (() => { try { const j = JSON.parse(localStorage.getItem('presco-mk') || 'null'); if (j && j.execs) return j; } catch (e) { } return { execs: {}, hist: [] }; })();
-  const mkSave = () => { try { localStorage.setItem('presco-mk', JSON.stringify(MKS)); } catch (e) { } };
-  function drawMk(pn) {
-    const host = document.getElementById(MKROOT[pn]); if (!host) return;
-    try {
-      const store = MKRT.store || {};
-      const N = n => Math.round(n || 0).toLocaleString('en-IN');
-      const S = n => { const a = Math.abs(n || 0); return a >= 1e7 ? (n / 1e7).toFixed(2) + ' Cr' : a >= 1e5 ? (n / 1e5).toFixed(2) + ' L' : N(n); };
-      const RS = n => '₹' + S(n), q = t => String(t == null ? '' : t).replace(/"/g, '&quot;').replace(/</g, '&lt;');
-      const tc = mkTitle;
-      const all = (MKRT.getBillRows ? MKRT.getBillRows() : []).filter(r => mkActive(r) && !/-CANCEL|-DELETED/i.test(r.type));
-      const months = [...new Set(all.map(r => r.bdate.slice(0, 7)))].sort().reverse();
-      if (MK.month !== 'all' && !months.includes(MK.month)) MK.month = months[0] || 'all';
-      const inM = (r, m) => m === 'all' || r.bdate.slice(0, 7) === m;
-      const kd = r => r.tran === 'IP' ? 'IPD' : 'OPD', ec = r => String(r.r1 || '').trim().toUpperCase();
-      const mrows = all.filter(r => r.r1t === 'MARKETING' && ec(r));
-      const fl = r => (!MK.loc || r.loc === MK.loc) && (!MK.exec || ec(r) === MK.exec) && (!MK.kind || kd(r) === MK.kind);
-      const cur = mrows.filter(r => inM(r, MK.month) && fl(r));
-      const pm = MK.month === 'all' ? null : months[months.indexOf(MK.month) + 1] || null;
-      const prev = pm ? mrows.filter(r => inM(r, pm) && fl(r)) : [];
-      const dim = MK.month === 'all' ? 30 : new Date(+MK.month.slice(0, 4), +MK.month.slice(5), 0).getDate();
-      const last = Math.max(0, ...all.filter(r => inM(r, MK.month)).map(r => +r.bdate.slice(8)));
-      const days = new Set(all.filter(r => inM(r, MK.month)).map(r => r.bdate)).size;
-      const frac = MK.month === 'all' ? 1 : Math.min(1, last / dim), scale = MK.month === 'all' ? days / 30.4 : 1;
-      const agg = rows => { const m = {}; rows.forEach(r => { const c = ec(r), o = m[c] = m[c] || { code: c, locs: {}, pts: new Set(), opd: new Set(), adm: new Set(), conv: new Set(), net: 0, opdNet: 0, ipNet: 0, n: 0 }; o.locs[r.loc] = (o.locs[r.loc] || 0) + 1; o.pts.add(r.umr); if (kd(r) === 'OPD') { o.opd.add(r.umr); o.opdNet += r.net || 0; } else { if (r.admn) o.adm.add(r.admn); o.ipNet += r.net || 0; } if ((r.net || 0) > 0) o.conv.add(r.umr); o.net += r.net || 0; o.n++; }); return m; };
-      const A = agg(cur), AP = agg(prev);
-      const ex = c => MKS.execs[c] || {}, active = c => ex(c).status !== 'Inactive';
-      const roster = [...new Set([...mrows.map(ec), ...Object.keys(MKS.execs)])].filter(c => !MK.exec || c === MK.exec);
-      const branch = c => ex(c).branch || (A[c] ? Object.entries(A[c].locs).sort((a, b) => b[1] - a[1])[0][0] : (mrows.find(r => ec(r) === c) || {}).loc) || '—';
-      const demoOn = MKS.demo !== false, hh = c => { let h = 7; for (const ch of c) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
-      const nDays = Math.max(new Set(all.map(r => r.bdate)).size, 1), FAC = [0.35, 0.55, 0.8, 0.95, 1.1, 1.3, 1.6, 2.0];
-      const HH = [1.4, 1.05, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2];
-      const demoTgt = c => { if (!demoOn) return 0; const acq = A[c] ? A[c].pts.size : 0; if (!acq) return Math.max(2, Math.round(new Set(mrows.filter(r => ec(r) === c).map(r => r.umr)).size / nDays * 30)); return Math.max(2, Math.round(acq / (HH[hh(c) % HH.length] * scale))); };
-      const monthly = c => +ex(c).monthly || demoTgt(c);
-      const leadOf = (c, acq) => demoOn ? Math.max(acq, Math.round(acq / (0.45 + (hh(c + 'L') % 41) / 100))) : null;
-      const apptOf = (c, acq) => demoOn ? Math.max(acq, Math.round(leadOf(c, acq) * (0.7 + (hh(c + 'A') % 21) / 100))) : null;
-      const dm = demoOn ? ' (demo)' : '';
-      const tgt = c => monthly(c) * scale;
-      const stat = (c, acq) => { const t = tgt(c); if (!t) return ['No target', 'nv']; const a = 100 * acq / t; if (a >= 100) return ['Target achieved', 'ok']; const e = 100 * frac, r = e ? a / e : 0; return r >= .9 ? ['On track', 'ok2'] : r >= .6 ? ['Needs attention', 'wl'] : ['Target at risk', 'rn']; };
-      const sb = c => { const s2 = stat(c, A[c] ? A[c].pts.size : 0); return `<span class="pf-v ${s2[1]}">${s2[0]}</span>`; };
-      const pbar = (p, e, c) => `<div class="mkbar"><i style="width:${Math.min(100, p)}%${c ? ';background:' + c : ''}"></i>${e ? `<b style="left:${Math.min(100, e)}%"></b>` : ''}</div>`;
-      const kk = (l, v, n) => `<div class="mkk"><span>${l}</span><b>${v}</b><small>${n || '&nbsp;'}</small></div>`;
-      const kp = (l, v, n) => `<div class="card"><p class="note" style="margin:0">${l}</p><p class="kpi">${v}</p><p class="note" style="margin:0">${n || '&nbsp;'}</p></div>`;
-      const need = (l, w) => `<div class="card" style="border-style:dashed"><p class="note" style="margin:0">${l}</p><p class="kpi" style="font-size:16px">Data integration required</p><p class="note" style="margin:0">${w}</p></div>`;
-      const opt = (l, k, vals, all2) => `<div class="field"><label>${l}</label><select data-mk="${k}"><option value="">${all2}</option>${vals.map(v => `<option value="${q(v[0])}"${MK[k] === v[0] ? ' selected' : ''}>${q(v[1])}</option>`).join('')}</select></div>`;
-      const mOpt = months.map(m => [m, m]).concat([['all', 'All loaded days']]);
-      const filt = (extra, noExec) => `<div class="controls"><div class="field"><label>Period</label><select data-mk="month">${mOpt.map(v => `<option value="${v[0]}"${MK.month === v[0] ? ' selected' : ''}>${v[1]}</option>`).join('')}</select></div>${opt('Branch', 'loc', [...new Set(mrows.map(r => r.loc))].sort().map(v => [v, tc(v)]), 'All branches')}${noExec ? '' : opt('Executive', 'exec', [...new Set(mrows.map(ec))].sort().map(v => [v, v]), 'All executives')}${opt('OPD / IPD', 'kind', [['OPD', 'OPD'], ['IPD', 'IPD']], 'Both')}${extra || ''}<span style="margin-left:auto;display:flex;gap:8px"><button type="button" class="btn ghost sm" id="mkcsv">Export (Excel / CSV)</button><button type="button" class="btn ghost sm" onclick="window.print()">Print / PDF</button></span></div>`;
-      const banner = demoOn ? '<div class="mkdemo"><span><b>Demo data on.</b> Targets and leads are samples. Patients, OPD / IPD and revenue are real billing data.</span><button type="button" class="btn ghost sm" id="mkdemo">Turn off</button></div>' : '<div class="mkdemo off"><span>Demo data is off.</span><button type="button" class="btn ghost sm" id="mkdemo">Use demo data</button></div>';
-      const codes = Object.keys(A);
-      const rowsE = roster.filter(c => A[c] || ex(c).monthly).map(c => { const a = A[c] || { pts: new Set(), opd: new Set(), adm: new Set(), conv: new Set(), net: 0 }, t = tgt(c), acq = a.pts.size; return { c, a, t, acq, lead: leadOf(c, acq), appt: apptOf(c, acq), ach: t ? 100 * acq / t : null, st: stat(c, acq) }; });
-      let html = '';
-      if (!mrows.length) { host.innerHTML = '<div class="card"><h2>No marketing referrals loaded</h2><p class="note" style="margin:0">Marketing executives come from the bill register export (referral type MARKETING).</p></div>'; return; }
-      if (pn === 'p-mk') {
-        const tA = rowsE.filter(r => r.t && active(r.c)), tTot = tA.reduce((a, r) => a + r.t, 0), aTot = tA.reduce((a, r) => a + r.acq, 0), allPts = new Set(cur.map(r => r.umr)).size;
-        const opdP = new Set(cur.filter(r => kd(r) === 'OPD').map(r => r.umr)).size, adm = new Set(cur.filter(r => kd(r) === 'IPD' && r.admn).map(r => r.admn)).size, rev = cur.reduce((a, r) => a + (r.net || 0), 0);
-        const pct = tTot ? 100 * aTot / tTot : null, exp = 100 * frac;
-        const leadTot = rowsE.filter(r => active(r.c)).reduce((a, r) => a + (r.lead || 0), 0), apptTot = rowsE.filter(r => active(r.c)).reduce((a, r) => a + (r.appt || 0), 0);
-        const withT = rowsE.filter(r => r.t && active(r.c)).sort((a, b) => b.ach - a.ach), top = withT[0], low = withT[withT.length - 1];
-        const cnt = k => rowsE.filter(r => active(r.c) && r.st[0] === k).length;
-        const ranked = withT.slice(), shown = ranked.filter(r => MK.st === 'all' || (MK.st === 'pending' ? r.ach < 100 : r.st[0] === MK.st));
-        const mixed = (() => { const C = shown.filter(r => r.ach >= 100).slice(0, 4), P = shown.filter(r => r.ach < 100), pk = P.length <= 8 ? P : Array.from({ length: 8 }, (_, i) => P[Math.round(i * (P.length - 1) / 7)]); return [...C, ...pk].sort((a, b) => b.ach - a.ach); })();
-        const scList = MK.more ? shown : (MK.st === 'all' && shown.length > 12 ? mixed : shown.slice(0, 12));
-        const SC = { 'Target achieved': ['#14B8A6', '#047857'], 'On track': ['#38BDF8', '#0369A1'], 'Needs attention': ['#F59E0B', '#92400E'], 'Target at risk': ['#F87171', '#B91C1C'] };
-        const pcard = (t, r) => r ? `<div class="card"><h2>${t}</h2><div class="pf-who"><span class="pf-av">${q(r.c.slice(0, 2))}</span><div><b>${q(r.c)}</b><span>${tc(branch(r.c))}</span></div></div><div class="pf-mini"><div><b>${N(r.t)}</b>Target${dm}</div><div><b>${N(r.acq)}</b>Acquired</div><div><b>${r.ach.toFixed(0)}%</b>Achieved</div><div><b>${N(Math.max(r.t - r.acq, 0))}</b>Remaining</div><div>${sb(r.c)}</div></div></div>` : '';
-        const sorters = { ach: (a, b) => (b.ach == null ? -1 : b.ach) - (a.ach == null ? -1 : a.ach), pts: (a, b) => b.acq - a.acq, ipd: (a, b) => b.a.adm.size - a.a.adm.size, rev: (a, b) => b.a.net - a.a.net };
-        const team = rowsE.slice().sort(sorters[MK.sort]);
-        const sel = MK.sel && A[MK.sel] ? MK.sel : (team[0] || {}).c; MK.sel = sel;
-        const sa = A[sel] || { pts: new Set(), opd: new Set(), adm: new Set(), net: 0, n: 0 }, sp = AP[sel] || { pts: new Set(), adm: new Set(), net: 0 }, st3 = stat(sel, sa.pts.size), tS = tgt(sel);
-        const dlt = (c2, p2) => p2 ? `${c2 >= p2 ? '+' : ''}${(100 * (c2 - p2) / p2).toFixed(0)}% vs ${pm}` : 'no earlier month';
-        const per = (rows, key) => { const m = {}; rows.forEach(r => { const k = key(r); (m[k] = m[k] || new Set()).add(r.umr); }); return m; };
-        const wk = d => { const t = new Date(d + 'T00:00:00Z'), w = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - w); return t.toISOString().slice(0, 10); };
-        const key = MK.gran === 'month' ? r => r.bdate.slice(0, 7) : MK.gran === 'week' ? r => wk(r.bdate) : r => r.bdate;
-        const trRows = mrows.filter(fl), tm = per(trRows, key), ks = Object.keys(tm).sort();
-        const W = 860, H = 220, PL = 46, PB = 36, PT = 12, mx = Math.max(...ks.map(k => tm[k].size), 1) * 1.15, bw = (W - PL - 10) / Math.max(ks.length, 1), y = v => PT + (H - PT - PB) * (1 - v / mx), st2 = Math.ceil(ks.length / 12), lab = k => MK.gran === 'month' ? k : mkDay(k);
-        let g = ''; for (let i = 0; i <= 4; i++) { const v = mx * i / 4; g += `<line x1="${PL}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="#E2E8F0"/><text x="${PL - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#64748B" font-family="Inter">${N(v)}</text>`; }
-        ks.forEach((k, i) => { const x = PL + i * bw + bw * .14; g += `<rect class="hitbar" x="${x}" y="${y(tm[k].size)}" width="${bw * .72}" height="${Math.max(1, H - PB - y(tm[k].size))}" rx="2" fill="#14B8A6" data-tip="${q('<span class="t">' + lab(k) + '</span>' + N(tm[k].size) + ' patients')}"/>`; if (i % st2 === 0) g += `<text x="${x + bw * .36}" y="${H - PB + 16}" text-anchor="middle" font-size="10.5" fill="#64748B" font-family="Inter">${lab(k)}</text>`; });
-        const srcRows = all.filter(r => r.r1t && r.r1t !== 'Walk-in' && inM(r, MK.month) && (!MK.loc || r.loc === MK.loc) && (!MK.kind || kd(r) === MK.kind)), sm = {};
-        srcRows.forEach(r => { const o = sm[r.r1t] = sm[r.r1t] || { k: r.r1t, pts: new Set(), opd: new Set(), adm: new Set(), net: 0, n: 0 }; o.pts.add(r.umr); if (kd(r) === 'OPD') o.opd.add(r.umr); else if (r.admn) o.adm.add(r.admn); o.net += r.net || 0; o.n++; });
-        const sl = Object.values(sm).sort((a, b) => b.pts.size - a.pts.size), sTot = sl.reduce((a, o) => a + o.pts.size, 0) || 1;
-        const monthsTbl = months.slice().reverse().map(m => { const rr = mrows.filter(r => inM(r, m) && fl(r)); return { m, p: new Set(rr.map(r => r.umr)).size, o: rr.filter(r => kd(r) === 'OPD').reduce((a, r) => a + (r.net || 0), 0), i: rr.filter(r => kd(r) === 'IPD').reduce((a, r) => a + (r.net || 0), 0) }; });
-        const recent = (() => { const rr = cur.filter(r => ec(r) === sel).sort((a, b) => a.bdate < b.bdate ? 1 : -1).slice(0, 8); return rr.length ? `<h3 style="margin:18px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#64748B">Recent referrals</h3><table class="btx"><thead><tr><th class="l">Date</th><th class="l">UHID</th><th>OPD / IPD</th><th>Revenue</th></tr></thead><tbody>${rr.map(r => `<tr><td class="l">${r.bdate}</td><td class="l">${q(r.umr)}</td><td>${kd(r)}</td><td><b>${N(r.net)}</b></td></tr>`).join('')}</tbody></table>` : ''; })();
-        const fun = [['Referrals received' + dm, demoOn ? leadTot : null], ['Appointments scheduled' + dm, demoOn ? apptTot : null], ['Patients visited (billed)', allPts], ['OPD patients', opdP], ['IPD admissions', adm], ['Converted (with revenue)', new Set(cur.filter(r => (r.net || 0) > 0).map(r => r.umr)).size]];
-        const fmx = Math.max(allPts, leadTot, 1);
-        html = filt('', true) + banner + `<div class="mkkpis">${kk('Marketing executives', rowsE.filter(r => active(r.c)).length, N(codes.length) + ' with patients this period')}${kk('Patients acquired', N(allPts), N(opdP) + ' OPD · ' + N(adm) + ' IPD admissions')}${demoOn ? kp('Referrals received (demo)', N(leadTot), leadTot ? (100 * allPts / leadTot).toFixed(0) + '% became patients' : '') : kk('Referrals received', '—', 'needs referral records')}${kk('Revenue through marketing', RS(rev), 'billed revenue of these patients')}${kk('Overall target achievement', pct == null ? '—' : pct.toFixed(0) + '%', tTot ? N(aTot) + ' of ' + N(tTot) + ' patients' + dm : 'no targets assigned yet')}${kk('Target still to go', tTot ? N(Math.max(tTot - aTot, 0)) : '—', tTot && aTot > tTot ? N(aTot - tTot) + ' above target' : 'for the whole team')}</div>
+/* ================= MARKETING MANAGEMENT =================
+   Marketing executives come from the bill register: referral type MARKETING, referral name = executive code.
+   Targets, employee details and status are entered here and kept in this browser (key presco-mk). */
+const MK = {month: '', loc: '', exec: '', src: '', kind: '', gran: 'day', sort: 'ach', sel: '', q: '', st: 'all', more: false, go: 0, view: 'targets', open: 0};
+const MKS = (() => { try { const j = JSON.parse(localStorage.getItem('presco-mk') || 'null'); if (j && j.execs) return j; } catch (e) {} return {execs: {}, hist: []}; })();
+const mkSave = () => { try { localStorage.setItem('presco-mk', JSON.stringify(MKS)); } catch (e) {} };
+function drawMk(pn){
+ const host = document.getElementById(MKROOT[pn]); if (!host) return;
+ try {
+ const store = MKRT.store || {};
+ const N = n => Math.round(n || 0).toLocaleString('en-IN');
+ const S = n => { const a = Math.abs(n || 0); return a >= 1e7 ? (n / 1e7).toFixed(2) + ' Cr' : a >= 1e5 ? (n / 1e5).toFixed(2) + ' L' : N(n); };
+ const RS = n => '₹' + S(n), q = t => String(t == null ? '' : t).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+ const tc = mkTitle;
+ const all = (MKRT.getBillRows ? MKRT.getBillRows() : []).filter(r => mkActive(r) && !/-CANCEL|-DELETED/i.test(r.type));
+ const months = [...new Set(all.map(r => r.bdate.slice(0, 7)))].sort().reverse();
+ if (MK.month !== 'all' && !months.includes(MK.month)) MK.month = months[0] || 'all';
+ const inM = (r, m) => m === 'all' || r.bdate.slice(0, 7) === m;
+ const kd = r => r.tran === 'IP' ? 'IPD' : 'OPD', ec = r => String(r.r1 || '').trim().toUpperCase();
+ const mrows = all.filter(r => r.r1t === 'MARKETING' && ec(r));
+ const fl = r => (!MK.loc || r.loc === MK.loc) && (!MK.exec || ec(r) === MK.exec) && (!MK.kind || kd(r) === MK.kind);
+ const cur = mrows.filter(r => inM(r, MK.month) && fl(r));
+ const pm = MK.month === 'all' ? null : months[months.indexOf(MK.month) + 1] || null;
+ const prev = pm ? mrows.filter(r => inM(r, pm) && fl(r)) : [];
+ const dim = MK.month === 'all' ? 30 : new Date(+MK.month.slice(0, 4), +MK.month.slice(5), 0).getDate();
+ const last = Math.max(0, ...all.filter(r => inM(r, MK.month)).map(r => +r.bdate.slice(8)));
+ const days = new Set(all.filter(r => inM(r, MK.month)).map(r => r.bdate)).size;
+ const frac = MK.month === 'all' ? 1 : Math.min(1, last / dim), scale = MK.month === 'all' ? days / 30.4 : 1;
+ const agg = rows => { const m = {}; rows.forEach(r => { const c = ec(r), o = m[c] = m[c] || {code: c, locs: {}, pts: new Set(), opd: new Set(), adm: new Set(), conv: new Set(), net: 0, opdNet: 0, ipNet: 0, n: 0}; o.locs[r.loc] = (o.locs[r.loc] || 0) + 1; o.pts.add(r.umr); if (kd(r) === 'OPD'){ o.opd.add(r.umr); o.opdNet += r.net || 0; } else { if (r.admn) o.adm.add(r.admn); o.ipNet += r.net || 0; } if ((r.net || 0) > 0) o.conv.add(r.umr); o.net += r.net || 0; o.n++; }); return m; };
+ const A = agg(cur), AP = agg(prev);
+ const ex = c => MKS.execs[c] || {}, active = c => ex(c).status !== 'Inactive';
+ const roster = [...new Set([...mrows.map(ec), ...Object.keys(MKS.execs)])].filter(c => !MK.exec || c === MK.exec);
+ const branch = c => ex(c).branch || (A[c] ? Object.entries(A[c].locs).sort((a, b) => b[1] - a[1])[0][0] : (mrows.find(r => ec(r) === c) || {}).loc) || '—';
+ const demoOn = MKS.demo !== false, hh = c => { let h = 7; for (const ch of c) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
+ const nDays = Math.max(new Set(all.map(r => r.bdate)).size, 1), FAC = [0.35, 0.55, 0.8, 0.95, 1.1, 1.3, 1.6, 2.0];
+ const HH = [1.4, 1.05, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2];
+ const demoTgt = c => { if (!demoOn) return 0; const acq = A[c] ? A[c].pts.size : 0; if (!acq) return Math.max(2, Math.round(new Set(mrows.filter(r => ec(r) === c).map(r => r.umr)).size / nDays * 30)); return Math.max(2, Math.round(acq / (HH[hh(c) % HH.length] * scale))); };
+ const monthly = c => +ex(c).monthly || demoTgt(c);
+ const leadOf = (c, acq) => demoOn ? Math.max(acq, Math.round(acq / (0.45 + (hh(c + 'L') % 41) / 100))) : null;
+ const apptOf = (c, acq) => demoOn ? Math.max(acq, Math.round(leadOf(c, acq) * (0.7 + (hh(c + 'A') % 21) / 100))) : null;
+ const dm = demoOn ? ' (demo)' : '';
+ const tgt = c => monthly(c) * scale;
+ const stat = (c, acq) => { const t = tgt(c); if (!t) return ['No target', 'nv']; const a = 100 * acq / t; if (a >= 100) return ['Target achieved', 'ok']; const e = 100 * frac, r = e ? a / e : 0; return r >= .9 ? ['On track', 'ok2'] : r >= .6 ? ['Needs attention', 'wl'] : ['Target at risk', 'rn']; };
+ const sb = c => { const s2 = stat(c, A[c] ? A[c].pts.size : 0); return `<span class="pf-v ${s2[1]}">${s2[0]}</span>`; };
+ const pbar = (p, e, c) => `<div class="mkbar"><i style="width:${Math.min(100, p)}%${c ? ';background:' + c : ''}"></i>${e ? `<b style="left:${Math.min(100, e)}%"></b>` : ''}</div>`;
+ const kk = (l, v, n) => `<div class="mkk"><span>${l}</span><b>${v}</b><small>${n || '&nbsp;'}</small></div>`;
+ const kp = (l, v, n) => `<div class="card"><p class="note" style="margin:0">${l}</p><p class="kpi">${v}</p><p class="note" style="margin:0">${n || '&nbsp;'}</p></div>`;
+ const need = (l, w) => `<div class="card" style="border-style:dashed"><p class="note" style="margin:0">${l}</p><p class="kpi" style="font-size:16px">Data integration required</p><p class="note" style="margin:0">${w}</p></div>`;
+ const opt = (l, k, vals, all2) => `<div class="field"><label>${l}</label><select data-mk="${k}"><option value="">${all2}</option>${vals.map(v => `<option value="${q(v[0])}"${MK[k] === v[0] ? ' selected' : ''}>${q(v[1])}</option>`).join('')}</select></div>`;
+ const mOpt = months.map(m => [m, m]).concat([['all', 'All loaded days']]);
+ const filt = (extra, noExec) => `<div class="controls"><div class="field"><label>Period</label><select data-mk="month">${mOpt.map(v => `<option value="${v[0]}"${MK.month === v[0] ? ' selected' : ''}>${v[1]}</option>`).join('')}</select></div>${opt('Branch', 'loc', [...new Set(mrows.map(r => r.loc))].sort().map(v => [v, tc(v)]), 'All branches')}${noExec ? '' : opt('Executive', 'exec', [...new Set(mrows.map(ec))].sort().map(v => [v, v]), 'All executives')}${opt('OPD / IPD', 'kind', [['OPD', 'OPD'], ['IPD', 'IPD']], 'Both')}${extra || ''}<span style="margin-left:auto;display:flex;gap:8px"><button type="button" class="btn ghost sm" id="mkcsv">Export (Excel / CSV)</button><button type="button" class="btn ghost sm" onclick="window.print()">Print / PDF</button></span></div>`;
+ const banner = demoOn ? '<div class="mkdemo"><span><b>Demo data on.</b> Targets and leads are samples. Patients, OPD / IPD and revenue are real billing data.</span><button type="button" class="btn ghost sm" id="mkdemo">Turn off</button></div>' : '<div class="mkdemo off"><span>Demo data is off.</span><button type="button" class="btn ghost sm" id="mkdemo">Use demo data</button></div>';
+ const codes = Object.keys(A);
+ const rowsE = roster.filter(c => A[c] || ex(c).monthly).map(c => { const a = A[c] || {pts: new Set(), opd: new Set(), adm: new Set(), conv: new Set(), net: 0}, t = tgt(c), acq = a.pts.size; return {c, a, t, acq, lead: leadOf(c, acq), appt: apptOf(c, acq), ach: t ? 100 * acq / t : null, st: stat(c, acq)}; });
+ let html = '';
+ if (!mrows.length){ host.innerHTML = '<div class="card"><h2>No marketing referrals loaded</h2><p class="note" style="margin:0">Marketing executives come from the bill register export (referral type MARKETING).</p></div>'; return; }
+ if (pn === 'p-mk'){
+  const tA = rowsE.filter(r => r.t && active(r.c)), tTot = tA.reduce((a, r) => a + r.t, 0), aTot = tA.reduce((a, r) => a + r.acq, 0), allPts = new Set(cur.map(r => r.umr)).size;
+  const opdP = new Set(cur.filter(r => kd(r) === 'OPD').map(r => r.umr)).size, adm = new Set(cur.filter(r => kd(r) === 'IPD' && r.admn).map(r => r.admn)).size, rev = cur.reduce((a, r) => a + (r.net || 0), 0);
+  const pct = tTot ? 100 * aTot / tTot : null, exp = 100 * frac;
+  const leadTot = rowsE.filter(r => active(r.c)).reduce((a, r) => a + (r.lead || 0), 0), apptTot = rowsE.filter(r => active(r.c)).reduce((a, r) => a + (r.appt || 0), 0);
+  const withT = rowsE.filter(r => r.t && active(r.c)).sort((a, b) => b.ach - a.ach), top = withT[0], low = withT[withT.length - 1];
+  const cnt = k => rowsE.filter(r => active(r.c) && r.st[0] === k).length;
+  const ranked = withT.slice(), shown = ranked.filter(r => MK.st === 'all' || (MK.st === 'pending' ? r.ach < 100 : r.st[0] === MK.st));
+  const mixed = (() => { const C = shown.filter(r => r.ach >= 100).slice(0, 4), P = shown.filter(r => r.ach < 100), pk = P.length <= 8 ? P : Array.from({length: 8}, (_, i) => P[Math.round(i * (P.length - 1) / 7)]); return [...C, ...pk].sort((a, b) => b.ach - a.ach); })();
+  const scList = MK.more ? shown : (MK.st === 'all' && shown.length > 12 ? mixed : shown.slice(0, 12));
+  const SC = {'Target achieved': ['#14B8A6', '#047857'], 'On track': ['#38BDF8', '#0369A1'], 'Needs attention': ['#F59E0B', '#92400E'], 'Target at risk': ['#F87171', '#B91C1C']};
+  const pcard = (t, r) => r ? `<div class="card"><h2>${t}</h2><div class="pf-who"><span class="pf-av">${q(r.c.slice(0, 2))}</span><div><b>${q(r.c)}</b><span>${tc(branch(r.c))}</span></div></div><div class="pf-mini"><div><b>${N(r.t)}</b>Target${dm}</div><div><b>${N(r.acq)}</b>Acquired</div><div><b>${r.ach.toFixed(0)}%</b>Achieved</div><div><b>${N(Math.max(r.t - r.acq, 0))}</b>Remaining</div><div>${sb(r.c)}</div></div></div>` : '';
+  const sorters = {ach: (a, b) => (b.ach == null ? -1 : b.ach) - (a.ach == null ? -1 : a.ach), pts: (a, b) => b.acq - a.acq, ipd: (a, b) => b.a.adm.size - a.a.adm.size, rev: (a, b) => b.a.net - a.a.net};
+  const team = rowsE.slice().sort(sorters[MK.sort]);
+  const sel = MK.sel && A[MK.sel] ? MK.sel : (team[0] || {}).c; MK.sel = sel;
+  const sa = A[sel] || {pts: new Set(), opd: new Set(), adm: new Set(), net: 0, n: 0}, sp = AP[sel] || {pts: new Set(), adm: new Set(), net: 0}, st3 = stat(sel, sa.pts.size), tS = tgt(sel);
+  const dlt = (c2, p2) => p2 ? `${c2 >= p2 ? '+' : ''}${(100 * (c2 - p2) / p2).toFixed(0)}% vs ${pm}` : 'no earlier month';
+  const per = (rows, key) => { const m = {}; rows.forEach(r => { const k = key(r); (m[k] = m[k] || new Set()).add(r.umr); }); return m; };
+  const wk = d => { const t = new Date(d + 'T00:00:00Z'), w = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - w); return t.toISOString().slice(0, 10); };
+  const key = MK.gran === 'month' ? r => r.bdate.slice(0, 7) : MK.gran === 'week' ? r => wk(r.bdate) : r => r.bdate;
+  const trRows = mrows.filter(fl), tm = per(trRows, key), ks = Object.keys(tm).sort();
+  const W = 860, H = 220, PL = 46, PB = 36, PT = 12, mx = Math.max(...ks.map(k => tm[k].size), 1) * 1.15, bw = (W - PL - 10) / Math.max(ks.length, 1), y = v => PT + (H - PT - PB) * (1 - v / mx), st2 = Math.ceil(ks.length / 12), lab = k => MK.gran === 'month' ? k : mkDay(k);
+  let g = ''; for (let i = 0; i <= 4; i++){ const v = mx * i / 4; g += `<line x1="${PL}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="#E2E8F0"/><text x="${PL - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#64748B" font-family="Inter">${N(v)}</text>`; }
+  ks.forEach((k, i) => { const x = PL + i * bw + bw * .14; g += `<rect class="hitbar" x="${x}" y="${y(tm[k].size)}" width="${bw * .72}" height="${Math.max(1, H - PB - y(tm[k].size))}" rx="2" fill="#14B8A6" data-tip="${q('<span class="t">' + lab(k) + '</span>' + N(tm[k].size) + ' patients')}"/>`; if (i % st2 === 0) g += `<text x="${x + bw * .36}" y="${H - PB + 16}" text-anchor="middle" font-size="10.5" fill="#64748B" font-family="Inter">${lab(k)}</text>`; });
+  const srcRows = all.filter(r => r.r1t && r.r1t !== 'Walk-in' && inM(r, MK.month) && (!MK.loc || r.loc === MK.loc) && (!MK.kind || kd(r) === MK.kind)), sm = {};
+  srcRows.forEach(r => { const o = sm[r.r1t] = sm[r.r1t] || {k: r.r1t, pts: new Set(), opd: new Set(), adm: new Set(), net: 0, n: 0}; o.pts.add(r.umr); if (kd(r) === 'OPD') o.opd.add(r.umr); else if (r.admn) o.adm.add(r.admn); o.net += r.net || 0; o.n++; });
+  const sl = Object.values(sm).sort((a, b) => b.pts.size - a.pts.size), sTot = sl.reduce((a, o) => a + o.pts.size, 0) || 1;
+  const monthsTbl = months.slice().reverse().map(m => { const rr = mrows.filter(r => inM(r, m) && fl(r)); return {m, p: new Set(rr.map(r => r.umr)).size, o: rr.filter(r => kd(r) === 'OPD').reduce((a, r) => a + (r.net || 0), 0), i: rr.filter(r => kd(r) === 'IPD').reduce((a, r) => a + (r.net || 0), 0)}; });
+  const recent = (() => { const rr = cur.filter(r => ec(r) === sel).sort((a, b) => a.bdate < b.bdate ? 1 : -1).slice(0, 8); return rr.length ? `<h3 style="margin:18px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#64748B">Recent referrals</h3><table class="btx"><thead><tr><th class="l">Date</th><th class="l">UHID</th><th>OPD / IPD</th><th>Revenue</th></tr></thead><tbody>${rr.map(r => `<tr><td class="l">${r.bdate}</td><td class="l">${q(r.umr)}</td><td>${kd(r)}</td><td><b>${N(r.net)}</b></td></tr>`).join('')}</tbody></table>` : ''; })();
+  const fun = [['Referrals received' + dm, demoOn ? leadTot : null], ['Appointments scheduled' + dm, demoOn ? apptTot : null], ['Patients visited (billed)', allPts], ['OPD patients', opdP], ['IPD admissions', adm], ['Converted (with revenue)', new Set(cur.filter(r => (r.net || 0) > 0).map(r => r.umr)).size]];
+  const fmx = Math.max(allPts, leadTot, 1);
+  html = filt('', true) + banner + `<div class="mkkpis">${kk('Marketing executives', rowsE.filter(r => active(r.c)).length, N(codes.length) + ' with patients this period')}${kk('Patients acquired', N(allPts), N(opdP) + ' OPD · ' + N(adm) + ' IPD admissions')}${demoOn ? kp('Referrals received (demo)', N(leadTot), leadTot ? (100 * allPts / leadTot).toFixed(0) + '% became patients' : '') : kk('Referrals received', '—', 'needs referral records')}${kk('Revenue through marketing', RS(rev), 'billed revenue of these patients')}${kk('Overall target achievement', pct == null ? '—' : pct.toFixed(0) + '%', tTot ? N(aTot) + ' of ' + N(tTot) + ' patients' + dm : 'no targets assigned yet')}${kk('Target still to go', tTot ? N(Math.max(tTot - aTot, 0)) : '—', tTot && aTot > tTot ? N(aTot - tTot) + ' above target' : 'for the whole team')}</div>
   <div class="mkseg">${[['targets', 'Targets and performance'], ['funnel', 'Funnel and revenue'], ['sources', 'Sources and trends']].map(v => `<button type="button" class="${MK.view === v[0] ? 'on' : ''}" data-mkview="${v[0]}">${v[1]}</button>`).join('')}</div>
   ${MK.view === 'targets' ? `<div class="card" style="margin-top:16px"><h2>Who has completed their target</h2>
   <p class="note" style="margin:0 0 10px">${tTot ? 'Coloured bar = patients acquired. Black line = where an executive should be by now (' + exp.toFixed(0) + '% of the period gone).' + (demoOn ? ' Targets are demonstration values.' : '') : 'No targets assigned. Add monthly targets in Executives &amp; targets.'}</p>
@@ -1066,39 +1066,39 @@
   <div class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h2 style="margin:0">Patients acquired over time</h2><div class="field" style="flex-direction:row;align-items:center;gap:8px"><label>View</label><select data-mk="gran">${[['day', 'Daily'], ['week', 'Weekly'], ['month', 'Monthly']].map(v => `<option value="${v[0]}"${MK.gran === v[0] ? ' selected' : ''}>${v[1]}</option>`).join('')}</select></div></div><svg viewBox="0 0 ${W} ${H}">${g}</svg></div>` : ''}
   ${MK.open ? `<div class="mkdrawer-bg" data-mkclose></div><aside class="mkdrawer"><button type="button" class="mkx" data-mkclose aria-label="Close">&times;</button><div class="card" id="mkind" style="margin-top:16px"><h2>Individual performance: ${q(sel)}</h2><p class="note">Click a name in the table above to change executive.</p>
   <div class="grid3" style="margin-top:0">${kp('Personal target', tS ? N(tS) : '—', sb(sel))}${kp('Actual achievement', N(sa.pts.size), tS ? (100 * sa.pts.size / tS).toFixed(0) + '% achieved' : 'no target set')}${kp('Leads received' + dm, demoOn ? N(leadOf(sel, sa.pts.size)) : '—', demoOn && leadOf(sel, sa.pts.size) ? (100 * sa.pts.size / leadOf(sel, sa.pts.size)).toFixed(0) + '% converted' : 'needs referral records')}${kp('Remaining target', tS ? N(Math.max(tS - sa.pts.size, 0)) : '—', tS && sa.pts.size > tS ? N(sa.pts.size - tS) + ' above target' : '')}${kp('OPD patients / IPD admissions', N(sa.opd.size) + ' / ' + N(sa.adm.size), '')}${kp('Revenue generated', RS(sa.net), dlt(sa.net, sp.net))}${kp('Previous month', pm ? N(sp.pts.size) + ' patients' : '—', pm ? dlt(sa.pts.size, sp.pts.size) : '')}</div></div>${recent}</aside>` : ''}`;
-      }
-      if (pn === 'p-me') {
-        const hist = MKS.hist.slice(-25).reverse(), all2 = [...new Set([...mrows.map(ec), ...Object.keys(MKS.execs)])].sort();
-        const inp = (c, f, t, w) => `<input data-mkf="${q(c)}|${f}" type="${t || 'text'}" value="${q(ex(c)[f] || '')}" style="min-width:0;width:${w || 90}px;padding:5px 7px;font-size:12px"${t === 'number' ? ` placeholder="${f === 'monthly' ? (demoOn && !ex(c).monthly ? 'demo ' + demoTgt(c) : '') : 'auto'}"` : ''}>`;
-        const locs = [...new Set(mrows.map(r => r.loc))].sort();
-        html = banner + `<div class="card" style="margin-top:14px"><h2>Add a marketing executive</h2><div class="controls" style="border:0;padding:0;margin:0;box-shadow:none"><div class="field"><label>Name or code</label><input id="mkn" placeholder="e.g. BODUPPAL-SR"></div><div class="field"><label>Employee ID</label><input id="mki" style="min-width:110px"></div><div class="field"><label>Branch</label><select id="mkb"><option value="">—</option>${locs.map(l => `<option>${tc(l)}</option>`).join('')}</select></div><div class="field"><label>Territory</label><input id="mkt" style="min-width:120px"></div><div class="field"><label>Monthly patient target</label><input id="mkm" type="number" style="min-width:110px"></div><button type="button" class="btn" id="mkadd">Add</button></div></div>
+ }
+ if (pn === 'p-me'){
+  const hist = MKS.hist.slice(-25).reverse(), all2 = [...new Set([...mrows.map(ec), ...Object.keys(MKS.execs)])].sort();
+  const inp = (c, f, t, w) => `<input data-mkf="${q(c)}|${f}" type="${t || 'text'}" value="${q(ex(c)[f] || '')}" style="min-width:0;width:${w || 90}px;padding:5px 7px;font-size:12px"${t === 'number' ? ` placeholder="${f === 'monthly' ? (demoOn && !ex(c).monthly ? 'demo ' + demoTgt(c) : '') : 'auto'}"` : ''}>`;
+  const locs = [...new Set(mrows.map(r => r.loc))].sort();
+  html = banner + `<div class="card" style="margin-top:14px"><h2>Add a marketing executive</h2><div class="controls" style="border:0;padding:0;margin:0;box-shadow:none"><div class="field"><label>Name or code</label><input id="mkn" placeholder="e.g. BODUPPAL-SR"></div><div class="field"><label>Employee ID</label><input id="mki" style="min-width:110px"></div><div class="field"><label>Branch</label><select id="mkb"><option value="">—</option>${locs.map(l => `<option>${tc(l)}</option>`).join('')}</select></div><div class="field"><label>Territory</label><input id="mkt" style="min-width:120px"></div><div class="field"><label>Monthly patient target</label><input id="mkm" type="number" style="min-width:110px"></div><button type="button" class="btn" id="mkadd">Add</button></div></div>
   <div class="card" style="margin-top:16px"><h2>Executives and targets</h2><p class="note">Targets are monthly patient counts. Weekly, daily, quarterly and yearly targets are worked out from the monthly figure unless you type one. Changes are logged below.</p>
   <div class="lgscroll"><table><thead><tr><th class="l">Executive</th><th class="l">Branch</th><th class="l">Employee ID</th><th class="l">Territory</th><th class="l">Contact</th><th class="l">Joined</th><th class="l">Status</th><th>Monthly</th><th>OPD</th><th>IPD</th><th>Weekly</th><th>Daily</th><th>Quarterly</th><th>Yearly</th></tr></thead><tbody>${all2.map(c => `<tr><td class="l"><b>${q(c)}</b></td><td class="l">${tc(branch(c))}</td><td class="l">${inp(c, 'id')}</td><td class="l">${inp(c, 'territory', 'text', 110)}</td><td class="l">${inp(c, 'contact', 'text', 110)}</td><td class="l">${inp(c, 'joined', 'date', 130)}</td><td class="l"><select data-mkf="${q(c)}|status" style="min-width:0;padding:5px 7px;font-size:12px"><option${active(c) ? ' selected' : ''}>Active</option><option${active(c) ? '' : ' selected'}>Inactive</option></select></td><td>${inp(c, 'monthly', 'number', 80)}</td><td>${inp(c, 'opd', 'number', 70)}</td><td>${inp(c, 'ipd', 'number', 70)}</td><td>${inp(c, 'weekly', 'number', 70)}</td><td>${inp(c, 'daily', 'number', 70)}</td><td>${inp(c, 'quarterly', 'number', 80)}</td><td>${inp(c, 'yearly', 'number', 80)}</td></tr>`).join('')}</tbody></table></div></div>
   <div class="card" style="margin-top:16px"><h2>Target and detail change history</h2>${hist.length ? `<table class="btx"><thead><tr><th class="l">When</th><th class="l">Executive</th><th class="l">Field</th><th>Old</th><th>New</th></tr></thead><tbody>${hist.map(h => `<tr><td class="l">${q(h.t)}</td><td class="l">${q(h.c)}</td><td class="l">${q(h.f)}</td><td>${q(h.o) || '—'}</td><td><b>${q(h.n) || '—'}</b></td></tr>`).join('')}</tbody></table>` : '<p class="note" style="margin:0">No changes yet.</p>'}</div>
   <p class="note" style="margin-top:10px">Saved in this browser only. Role-based access needs a login system, which this file does not have.</p>`;
-      }
-      if (pn === 'p-mr') {
-        const srcs = [...new Set(all.map(r => r.r1t).filter(x => x && x !== 'Walk-in'))].sort(), SR = MK.src || 'MARKETING';
-        const rr = all.filter(r => r.r1t === SR && inM(r, MK.month) && (!MK.loc || r.loc === MK.loc) && (!MK.exec || ec(r) === MK.exec) && (!MK.kind || kd(r) === MK.kind) && (!MK.q || (r.umr + ' ' + r.r1 + ' ' + r.r2 + ' ' + r.dept).toLowerCase().includes(MK.q.toLowerCase()))).sort((a, b) => a.bdate < b.bdate ? 1 : -1);
-        html = filt(`<div class="field"><label>Referral source</label><select data-mk="src">${srcs.map(v => `<option value="${q(v)}"${SR === v ? ' selected' : ''}>${tc(v)}</option>`).join('')}</select></div><div class="field"><label>Search</label><input type="search" id="mkq" value="${q(MK.q)}" placeholder="UHID, executive, department"></div>`) + `<div class="card" style="margin-top:16px"><h2>Referral records</h2><p class="note">${N(rr.length)} bills · ${N(new Set(rr.map(r => r.umr)).size)} unique patients${rr.length > 300 ? ' · showing the latest 300' : ''}. Patient names are not stored; UHID identifies the patient.</p>
+ }
+ if (pn === 'p-mr'){
+  const srcs = [...new Set(all.map(r => r.r1t).filter(x => x && x !== 'Walk-in'))].sort(), SR = MK.src || 'MARKETING';
+  const rr = all.filter(r => r.r1t === SR && inM(r, MK.month) && (!MK.loc || r.loc === MK.loc) && (!MK.exec || ec(r) === MK.exec) && (!MK.kind || kd(r) === MK.kind) && (!MK.q || (r.umr + ' ' + r.r1 + ' ' + r.r2 + ' ' + r.dept).toLowerCase().includes(MK.q.toLowerCase()))).sort((a, b) => a.bdate < b.bdate ? 1 : -1);
+  html = filt(`<div class="field"><label>Referral source</label><select data-mk="src">${srcs.map(v => `<option value="${q(v)}"${SR === v ? ' selected' : ''}>${tc(v)}</option>`).join('')}</select></div><div class="field"><label>Search</label><input type="search" id="mkq" value="${q(MK.q)}" placeholder="UHID, executive, department"></div>`) + `<div class="card" style="margin-top:16px"><h2>Referral records</h2><p class="note">${N(rr.length)} bills · ${N(new Set(rr.map(r => r.umr)).size)} unique patients${rr.length > 300 ? ' · showing the latest 300' : ''}. Patient names are not stored; UHID identifies the patient.</p>
   <div class="lgscroll"><table><thead><tr><th class="l">Date</th><th class="l">Executive</th><th class="l">Referral source</th><th class="l">Referring doctor / organisation</th><th class="l">UHID</th><th class="l">Department</th><th>OPD / IPD</th><th class="l">Bill</th><th>Revenue</th></tr></thead><tbody>${rr.slice(0, 300).map(r => `<tr><td class="l">${r.bdate}</td><td class="l">${SR === 'MARKETING' ? q(ec(r)) : '—'}</td><td class="l">${tc(r.r1t)}</td><td class="l">${q(SR === 'MARKETING' ? r.r2 : r.r1) || '—'}</td><td class="l">${q(r.umr)}</td><td class="l">${tc(r.dept)}</td><td>${kd(r)}</td><td class="l">${q(r.bill)}</td><td><b>${N(r.net)}</b></td></tr>`).join('')}</tbody></table></div></div>`;
-      }
-      host.innerHTML = html;
-      host.querySelectorAll('[data-mk]').forEach(s2 => { s2.onchange = () => { MK[s2.dataset.mk] = s2.value; drawMk(pn); }; });
-      host.querySelectorAll('[data-ex]').forEach(t => { t.onclick = () => { MK.sel = t.dataset.ex; MK.open = 1; drawMk(pn); }; });
-      host.querySelectorAll('[data-mkst]').forEach(b => { b.onclick = () => { MK.st = b.dataset.mkst; MK.more = false; drawMk(pn); }; });
-      host.querySelectorAll('[data-mkview]').forEach(b => { b.onclick = () => { MK.view = b.dataset.mkview; drawMk(pn); }; });
-      host.querySelectorAll('[data-mkclose]').forEach(b => { b.onclick = () => { MK.open = 0; drawMk(pn); }; });
-      const mm2 = host.querySelector('#mkmore'); if (mm2) mm2.onclick = () => { MK.more = !MK.more; drawMk(pn); };
-      if (MK.go) { const e2 = host.querySelector('#mkind'); if (e2) e2.scrollIntoView({ behavior: 'smooth', block: 'start' }); MK.go = 0; }
-      const dmb = host.querySelector('#mkdemo'); if (dmb) dmb.onclick = () => { MKS.demo = !demoOn; mkSave(); drawMk(pn); };
-      const cv = host.querySelector('#mkcsv'); if (cv) cv.onclick = () => { const b = document.getElementById('hcsv'); if (b) b.click(); };
-      const mq = host.querySelector('#mkq'); if (mq) mq.oninput = () => { MK.q = mq.value; MK.fq = 1; drawMk(pn); }; if (mq && MK.fq) { mq.focus(); mq.setSelectionRange(mq.value.length, mq.value.length); MK.fq = 0; }
-      host.querySelectorAll('[data-mkf]').forEach(i2 => { i2.onchange = () => { const [c, f] = i2.dataset.mkf.split('|'), e = MKS.execs[c] = MKS.execs[c] || {}, o = e[f] == null ? '' : String(e[f]); let v = i2.value; if (f === 'status') v = v; else if (i2.type === 'number') v = v === '' ? '' : +v; e[f] = v; if (String(v) !== o) MKS.hist.push({ t: new Date().toLocaleString('en-IN'), c, f, o, n: String(v) }); mkSave(); drawMk(pn); }; });
-      const ad = host.querySelector('#mkadd'); if (ad) ad.onclick = () => { const c = host.querySelector('#mkn').value.trim().toUpperCase(); if (!c) return; MKS.execs[c] = Object.assign(MKS.execs[c] || {}, { id: host.querySelector('#mki').value, branch: host.querySelector('#mkb').value, territory: host.querySelector('#mkt').value, monthly: +host.querySelector('#mkm').value || '' }); MKS.hist.push({ t: new Date().toLocaleString('en-IN'), c, f: 'added', o: '', n: 'executive added' }); mkSave(); drawMk(pn); };
-      mkTips(host);
-    } catch (e) { console.error(e); host.innerHTML = '<div class="card"><h2>This view could not be drawn</h2></div>'; }
-  }
+ }
+ host.innerHTML = html;
+ host.querySelectorAll('[data-mk]').forEach(s2 => { s2.onchange = () => { MK[s2.dataset.mk] = s2.value; drawMk(pn); }; });
+ host.querySelectorAll('[data-ex]').forEach(t => { t.onclick = () => { MK.sel = t.dataset.ex; MK.open = 1; drawMk(pn); }; });
+ host.querySelectorAll('[data-mkst]').forEach(b => { b.onclick = () => { MK.st = b.dataset.mkst; MK.more = false; drawMk(pn); }; });
+ host.querySelectorAll('[data-mkview]').forEach(b => { b.onclick = () => { MK.view = b.dataset.mkview; drawMk(pn); }; });
+ host.querySelectorAll('[data-mkclose]').forEach(b => { b.onclick = () => { MK.open = 0; drawMk(pn); }; });
+ const mm2 = host.querySelector('#mkmore'); if (mm2) mm2.onclick = () => { MK.more = !MK.more; drawMk(pn); };
+ if (MK.go){ const e2 = host.querySelector('#mkind'); if (e2) e2.scrollIntoView({behavior: 'smooth', block: 'start'}); MK.go = 0; }
+ const dmb = host.querySelector('#mkdemo'); if (dmb) dmb.onclick = () => { MKS.demo = !demoOn; mkSave(); drawMk(pn); };
+ const cv = host.querySelector('#mkcsv'); if (cv) cv.onclick = () => { const b = document.getElementById('hcsv'); if (b) b.click(); };
+ const mq = host.querySelector('#mkq'); if (mq) mq.oninput = () => { MK.q = mq.value; MK.fq = 1; drawMk(pn); }; if (mq && MK.fq){ mq.focus(); mq.setSelectionRange(mq.value.length, mq.value.length); MK.fq = 0; }
+ host.querySelectorAll('[data-mkf]').forEach(i2 => { i2.onchange = () => { const [c, f] = i2.dataset.mkf.split('|'), e = MKS.execs[c] = MKS.execs[c] || {}, o = e[f] == null ? '' : String(e[f]); let v = i2.value; if (f === 'status') v = v; else if (i2.type === 'number') v = v === '' ? '' : +v; e[f] = v; if (String(v) !== o) MKS.hist.push({t: new Date().toLocaleString('en-IN'), c, f, o, n: String(v)}); mkSave(); drawMk(pn); }; });
+ const ad = host.querySelector('#mkadd'); if (ad) ad.onclick = () => { const c = host.querySelector('#mkn').value.trim().toUpperCase(); if (!c) return; MKS.execs[c] = Object.assign(MKS.execs[c] || {}, {id: host.querySelector('#mki').value, branch: host.querySelector('#mkb').value, territory: host.querySelector('#mkt').value, monthly: +host.querySelector('#mkm').value || ''}); MKS.hist.push({t: new Date().toLocaleString('en-IN'), c, f: 'added', o: '', n: 'executive added'}); mkSave(); drawMk(pn); };
+ mkTips(host);
+ } catch (e) { console.error(e); host.innerHTML = '<div class="card"><h2>This view could not be drawn</h2></div>'; }
+}
 
   const mkRenderAll = () => Object.keys(MKROOT).forEach(drawMk);
   const mkPrevReady = window.__PRESCO_ENHANCER_READY;
@@ -1133,40 +1133,32 @@
   const active = r => !r.st || r.st === 'A';
   const dl = iso => new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
   const addDays = (iso, n) => new Date(Date.parse(iso + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
-  const payOf = r => {
-    const c = String(r.cmp || '').toUpperCase(), t = r.ctype;
+  const payOf = r => { const c = String(r.cmp || '').toUpperCase(), t = r.ctype;
     if (/PMJAY|AYUSHMAN|PM-JAY/.test(c)) return 'PMJAY';
     if (/AAROGYASRI|\bEHS\b|EHS-|CGHS|ESIC|ECHS|CMCHIS/.test(c) || t === 'Govt/Psu') return 'Government schemes';
     if (/TPA/.test(c)) return 'TPA';
     if (t === 'Insurance' || /INSURANCE|ASSURANCE|LOMBARD/.test(c)) return 'Insurance';
     if (t === 'Corporate') return 'Corporate';
     if (!c || c === 'GENERAL' || /CASH/.test(c) || !t) return 'Cash / general';
-    return 'Other';
-  };
+    return 'Other'; };
   const kindOf = r => r.tran === 'OPP' ? 'Pharmacy' : r.tran === 'OP' ? 'OPD' : /^ER IP FINAL|-ER$/i.test(r.type) ? 'ER' : 'IPD';
   const snaps = () => ((XR.store && XR.store.snapshots) || []).filter(s => s.data && s.data.kpi).slice().sort((a, b) => a.asOf < b.asOf ? -1 : 1);
   const kk = (l, v, n, tone) => `<div class="mkk"><span>${l}</span><b${tone ? ` style="color:${tone}"` : ''}>${v}</b><small>${n || '&nbsp;'}</small></div>`;
   const card = (t, body, note) => `<div class="card" style="margin-top:16px"><h2>${t}</h2>${note ? `<p class="note">${note}</p>` : ''}${body}</div>`;
   const empty = (t, w) => `<div class="card" style="margin-top:16px"><h2>${t}</h2><p class="note" style="margin:0">${w}</p></div>`;
   const opt = (l, k, vals, all) => `<div class="field"><label>${l}</label><select data-xs="${k}"><option value="">${all}</option>${vals.map(v => `<option value="${q(v[0])}"${XS[k] === v[0] ? ' selected' : ''}>${q(v[1])}</option>`).join('')}</select></div>`;
-  const tips = host => {
-    if (host.__xt) return; host.__xt = true; const el = () => document.getElementById('tip');
+  const tips = host => { if (host.__xt) return; host.__xt = true; const el = () => document.getElementById('tip');
     host.addEventListener('mousemove', e => { const t = e.target.closest('[data-tip]'), x = el(); if (!x) return; if (!t) { x.classList.remove('on'); return; } x.innerHTML = t.dataset.tip; x.classList.add('on'); x.style.left = Math.min(e.clientX + 14, window.innerWidth - 290) + 'px'; x.style.top = (e.clientY + 16) + 'px'; });
-    host.addEventListener('mouseleave', () => { const x = el(); if (x) x.classList.remove('on'); });
-  };
-  const bars = (items, o) => {
-    o = o || {}; const W = 860, H = 220, PL = 56, PB = 34, PT = 12, mx = Math.max(...items.map(i => i.v), 1) * 1.15, bw = (W - PL - 10) / Math.max(items.length, 1), y = v => PT + (H - PT - PB) * (1 - v / mx), st = Math.ceil(items.length / 14);
+    host.addEventListener('mouseleave', () => { const x = el(); if (x) x.classList.remove('on'); }); };
+  const bars = (items, o) => { o = o || {}; const W = 860, H = 220, PL = 56, PB = 34, PT = 12, mx = Math.max(...items.map(i => i.v), 1) * 1.15, bw = (W - PL - 10) / Math.max(items.length, 1), y = v => PT + (H - PT - PB) * (1 - v / mx), st = Math.ceil(items.length / 14);
     let g = ''; for (let i = 0; i <= 4; i++) { const v = mx * i / 4; g += `<line x1="${PL}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="#E2E8F0"/><text x="${PL - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#64748B" font-family="Inter">${C(v)}</text>`; }
     items.forEach((it, i) => { const x = PL + i * bw + bw * .14; g += `<rect class="hitbar" x="${x}" y="${y(it.v)}" width="${bw * .72}" height="${Math.max(1, H - PB - y(it.v))}" rx="2" fill="${it.c || '#14B8A6'}" data-tip="${q('<span class="t">' + it.l + '</span>' + (o.fmt ? o.fmt(it.v) : RS(it.v)))}"/>`; if (i % st === 0) g += `<text x="${x + bw * .36}" y="${H - PB + 16}" text-anchor="middle" font-size="10.5" fill="#64748B" font-family="Inter">${it.l}</text>`; });
-    return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
-  };
-  const line = items => {
-    const W = 860, H = 200, PL = 60, PB = 30, PT = 12, mn = Math.min(...items.map(i => i.v)), mx = Math.max(...items.map(i => i.v)), lo = mn - (mx - mn) * .3, hi = mx + (mx - mn) * .15 || 1, st = (W - PL - 14) / Math.max(items.length - 1, 1), y = v => PT + (H - PT - PB) * (1 - (v - lo) / ((hi - lo) || 1)), s2 = Math.ceil(items.length / 10);
+    return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`; };
+  const line = items => { const W = 860, H = 200, PL = 60, PB = 30, PT = 12, mn = Math.min(...items.map(i => i.v)), mx = Math.max(...items.map(i => i.v)), lo = mn - (mx - mn) * .3, hi = mx + (mx - mn) * .15 || 1, st = (W - PL - 14) / Math.max(items.length - 1, 1), y = v => PT + (H - PT - PB) * (1 - (v - lo) / ((hi - lo) || 1)), s2 = Math.ceil(items.length / 10);
     let g = ''; for (let i = 0; i <= 3; i++) { const v = lo + (hi - lo) * i / 3; g += `<line x1="${PL}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="#E2E8F0"/><text x="${PL - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#64748B" font-family="Inter">${C(v)}</text>`; }
     g += `<path d="${items.map((p, i) => (i ? 'L' : 'M') + (PL + i * st) + ' ' + y(p.v)).join(' ')}" fill="none" stroke="#0D9488" stroke-width="2.5"/>`;
     items.forEach((p, i) => { g += `<circle class="hitbar" cx="${PL + i * st}" cy="${y(p.v)}" r="3.5" fill="#fff" stroke="#0D9488" stroke-width="2" data-tip="${q('<span class="t">' + p.l + '</span>' + RS(p.v))}"/>`; if (i % s2 === 0) g += `<text x="${PL + i * st}" y="${H - 8}" text-anchor="middle" font-size="10.5" fill="#64748B" font-family="Inter">${p.l}</text>`; });
-    return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
-  };
+    return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`; };
   const tbl = (head, rows, o) => `<div style="overflow-x:auto"><table class="btx"><thead><tr>${head.map((h, i) => `<th${i === 0 ? ' class="l"' : ''}>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr${o && o.cls ? ` class="${o.cls}"` : ''}>${r.map((c, i) => `<td${i === 0 ? ' class="l"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   const stBadge = s => `<span class="pf-v ${s === 'Settled' ? 'ok' : s === 'Part-received' ? 'ok2' : 'wl'}">${s}</span>`;
   function claims() {
@@ -1179,55 +1171,41 @@
   const BUCKETS = [['0-7 days', 0, 7], ['8-15 days', 8, 15], ['16-30 days', 16, 30], ['31-60 days', 31, 60], ['Over 60 days', 61, 99999]];
   const filt = (cl, withPay) => `<div class="controls">${opt('Branch', 'loc', [...new Set(cl.rows.map(r => r.loc))].sort().map(v => [v, tc(v)]), 'All branches')}${opt('Department', 'dept', [...new Set(cl.rows.map(r => r.dept))].filter(Boolean).sort().map(v => [v, tc(v)]), 'All departments')}${opt('TPA / payer type', 'pay', [...new Set(cl.rows.map(r => r.pay))].sort().map(v => [v, v]), 'All payers')}${withPay ? opt('Payment status', 'stat', [['Settled', 'Settled'], ['Part-received', 'Part-received'], ['Pending', 'Pending']], 'All statuses') : ''}<div class="field"><label>Bill date from</label><input type="date" data-xs="from" value="${q(XS.from)}" style="min-width:0"></div><div class="field"><label>to</label><input type="date" data-xs="to" value="${q(XS.to)}" style="min-width:0"></div><button type="button" class="btn ghost sm" id="xreset">Reset filters</button></div>`;
   const apply = cl => cl.rows.filter(r => (!XS.loc || r.loc === XS.loc) && (!XS.dept || r.dept === XS.dept) && (!XS.pay || r.pay === XS.pay) && (!XS.stat || r.stat === XS.stat) && (!XS.from || r.bdate >= XS.from) && (!XS.to || r.bdate <= XS.to) && (XS.ageMin === '' || (r.stat !== 'Settled' && r.age >= XS.ageMin && r.age <= XS.ageMax)));
-  const drawer = html => {
-    let d = document.getElementById('xDrawer'); if (!d) { d = document.createElement('div'); d.id = 'xDrawer'; document.body.appendChild(d); }
+  const drawer = html => { let d = document.getElementById('xDrawer'); if (!d) { d = document.createElement('div'); d.id = 'xDrawer'; document.body.appendChild(d); }
     d.innerHTML = html ? `<div class="mkdrawer-bg" data-xc></div><aside class="mkdrawer"><button type="button" class="mkx" data-xc aria-label="Close">&times;</button>${html}</aside>` : '';
-    d.querySelectorAll('[data-xc]').forEach(b => { b.onclick = () => { d.innerHTML = ''; }; });
-  };
+    d.querySelectorAll('[data-xc]').forEach(b => { b.onclick = () => { d.innerHTML = ''; }; }); };
   const kv = (rows) => `<table class="btx"><tbody>${rows.map(r => `<tr><td class="l" style="color:#64748B;width:42%">${r[0]}</td><td class="l"><b>${r[1]}</b></td></tr>`).join('')}</tbody></table>`;
-  const claimDrawer = (r, all) => {
-    const same = all.filter(x => x.umr === r.umr && x !== r).slice(0, 8);
-    drawer(`<h2 style="margin:0 0 4px">Claim details</h2><p class="note">${stBadge(r.stat)} &nbsp; ${r.age} days since billing</p>` + kv([['UHID', q(r.umr)], ['Bill no.', q(r.bill)], ['Admission no.', q(r.admn) || '—'], ['Bill date', r.bdate], ['Admission date', r.adate || '—'], ['Discharge date', r.ddate || '—'], ['Branch', tc(r.loc)], ['Department', tc(r.dept) || '—'], ['Doctor', tc(r.doc) || '—'], ['Payer type', r.pay], ['Payer', tc(r.cmp) || '—'], ['Billed (gross)', '₹' + N(r.amt)], ['Concession', '₹' + N(r.conc)], ['Net claim amount', '₹' + N(r.net)], ['Received', '₹' + N(r.trcpt)], ['Outstanding', '₹' + N(r.tout)]]) + (same.length ? `<h3 style="margin:18px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#64748B">Other claims of this patient</h3>` + tbl(['Bill date', 'Payer', 'Net', 'Outstanding', 'Status'], same.map(x => [x.bdate, tc(x.cmp) || x.pay, N(x.net), N(x.tout), stBadge(x.stat)])) : ''));
-  };
+  const claimDrawer = (r, all) => { const same = all.filter(x => x.umr === r.umr && x !== r).slice(0, 8);
+    drawer(`<h2 style="margin:0 0 4px">Claim details</h2><p class="note">${stBadge(r.stat)} &nbsp; ${r.age} days since billing</p>` + kv([['UHID', q(r.umr)], ['Bill no.', q(r.bill)], ['Admission no.', q(r.admn) || '—'], ['Bill date', r.bdate], ['Admission date', r.adate || '—'], ['Discharge date', r.ddate || '—'], ['Branch', tc(r.loc)], ['Department', tc(r.dept) || '—'], ['Doctor', tc(r.doc) || '—'], ['Payer type', r.pay], ['Payer', tc(r.cmp) || '—'], ['Billed (gross)', '₹' + N(r.amt)], ['Concession', '₹' + N(r.conc)], ['Net claim amount', '₹' + N(r.net)], ['Received', '₹' + N(r.trcpt)], ['Outstanding', '₹' + N(r.tout)]]) + (same.length ? `<h3 style="margin:18px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#64748B">Other claims of this patient</h3>` + tbl(['Bill date', 'Payer', 'Net', 'Outstanding', 'Status'], same.map(x => [x.bdate, tc(x.cmp) || x.pay, N(x.net), N(x.tout), stBadge(x.stat)])) : '')); };
   /* ---------------- BED MANAGEMENT AND FORECASTING ---------------- */
   const XB = { loc: '', ward: '', type: '', h: 7, win: 28 };
   const wd = d => new Date(d + 'T00:00:00Z').getUTCDay(), DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const mean = a => a.reduce((x, y) => x + y, 0) / (a.length || 1);
   const bedSeries = () => snaps().map(s => { const k = s.data.kpi; return { d: s.asOf, occ: (k.occBeds || {}).today || 0, beds: (k.beds || {}).today || 0, maint: (k.maintBeds || {}).today || 0, adm: (k.ipAdm || {}).today || 0, dis: (k.discharges || {}).today || 0 }; }).filter(x => x.occ > 0 && x.beds > 0);
-  const fit = (S, end) => {
-    const lo = Math.max(1, end - 27), A = [0, 1, 2, 3, 4, 5, 6].map(() => []), Rr = [0, 1, 2, 3, 4, 5, 6].map(() => []), aa = [], rr = [];
+  const fit = (S, end) => { const lo = Math.max(1, end - 27), A = [0, 1, 2, 3, 4, 5, 6].map(() => []), Rr = [0, 1, 2, 3, 4, 5, 6].map(() => []), aa = [], rr = [];
     for (let i = lo; i <= end; i++) { const w = wd(S[i].d), r = S[i].dis / (S[i - 1].occ || 1); A[w].push(S[i].adm); Rr[w].push(r); aa.push(S[i].adm); rr.push(r); }
-    const mA = mean(aa), mR = mean(rr); return { A: A.map(a => a.length >= 2 ? mean(a) : mA), R: Rr.map(a => a.length >= 2 ? mean(a) : mR), mA, mR };
-  };
+    const mA = mean(aa), mR = mean(rr); return { A: A.map(a => a.length >= 2 ? mean(a) : mA), R: Rr.map(a => a.length >= 2 ? mean(a) : mR), mA, mR }; };
   const project = (S, i, h, P) => { const out = []; let occ = S[i].occ, d = S[i].d; for (let k = 1; k <= h; k++) { d = addDays(d, 1); const w = wd(d), dis = P.R[w] * occ; occ = Math.max(0, occ + P.A[w] - dis); out.push({ d, occ, adm: P.A[w], dis }); } return out; };
   const backtest = S => { const err = {}, pct = {}; for (let i = 14; i < S.length - 1; i++) { const f = project(S, i, Math.min(28, S.length - 1 - i), fit(S, i)); f.forEach((p, k) => { const t = S[i + k + 1]; if (!t || t.d !== p.d) return; (err[k + 1] = err[k + 1] || []).push(p.occ - t.occ); (pct[k + 1] = pct[k + 1] || []).push(Math.abs(p.occ - t.occ) / (t.occ || 1)); }); } return { err, pct }; };
   const rmse = a => Math.sqrt(mean(a.map(x => x * x)));
-  const model = () => {
-    const S = bedSeries(); if (S.length < 20) return null; const P = fit(S, S.length - 1), bt = backtest(S), s1 = bt.err[1] && bt.err[1].length >= 5 ? rmse(bt.err[1]) : null; if (s1 == null) return null;
+  const model = () => { const S = bedSeries(); if (S.length < 20) return null; const P = fit(S, S.length - 1), bt = backtest(S), s1 = bt.err[1] && bt.err[1].length >= 5 ? rmse(bt.err[1]) : null; if (s1 == null) return null;
     const sig = h => bt.err[h] && bt.err[h].length >= 8 ? rmse(bt.err[h]) : s1 * Math.sqrt(h), pooled = [].concat(...[1, 2, 3, 4, 5, 6, 7].map(h => bt.pct[h] || []));
     const F = project(S, S.length - 1, 28, P).map((p, k) => ({ ...p, lo: Math.max(0, p.occ - 1.96 * sig(k + 1)), hi: p.occ + 1.96 * sig(k + 1) }));
-    return { S, P, F, acc: pooled.length ? 100 * (1 - mean(pooled)) : null, n: pooled.length, s1 };
-  };
+    return { S, P, F, acc: pooled.length ? 100 * (1 - mean(pooled)) : null, n: pooled.length, s1 }; };
   const wardOf = a => String(a.ward || '').split(' / ')[0].trim() || '—', subOf = a => String(a.ward || '').split(' / ')[1] || '', bedOf = a => String(a.ward || '').split(' / ')[2] || '';
-  const bedRows = () => {
-    const ss = snaps(), asOf = ss.length ? ss[ss.length - 1].asOf : '', from = asOf ? addDays(asOf, -(XB.win - 1)) : '';
-    return { asOf, from, rows: ((XR.store && XR.store.adm) || []).filter(a => a.date >= from && a.date <= asOf), disc: ((XR.store && XR.store.disc) || []) };
-  };
+  const bedRows = () => { const ss = snaps(), asOf = ss.length ? ss[ss.length - 1].asOf : '', from = asOf ? addDays(asOf, -(XB.win - 1)) : '';
+    return { asOf, from, rows: ((XR.store && XR.store.adm) || []).filter(a => a.date >= from && a.date <= asOf), disc: ((XR.store && XR.store.disc) || []) }; };
   const alosOf = (disc, kf) => { const m = {}; disc.forEach(d => { if (d.stay == null) return; const k = kf(d); (m[k] = m[k] || []).push(d.stay); }); return m; };
   const bedFilt = (br, wards) => `<div class="controls">${optB('Branch', 'loc', [...new Set(br.rows.map(a => a.loc))].filter(Boolean).sort().map(v => [v, tc(v)]), 'All branches')}${optB('Ward', 'ward', wards.map(v => [v, tc(v)]), 'All wards')}${optB('Admission type', 'type', [...new Set(br.rows.map(a => a.type))].filter(Boolean).sort().map(v => [v, v]), 'All types')}<div class="field"><label>Look-back</label><select data-xb="win">${[7, 14, 28].map(v => `<option value="${v}"${XB.win === v ? ' selected' : ''}>Last ${v} days</option>`).join('')}</select></div></div>`;
   const optB = (l, k, vals, all) => `<div class="field"><label>${l}</label><select data-xb="${k}"><option value="">${all}</option>${vals.map(v => `<option value="${q(v[0])}"${String(XB[k]) === v[0] ? ' selected' : ''}>${q(v[1])}</option>`).join('')}</select></div>`;
-  const wardStats = (br) => {
-    const rows = br.rows.filter(a => (!XB.loc || a.loc === XB.loc) && (!XB.type || a.type === XB.type)), m = {}; const AL = alosOf(br.disc, d => String(d.ward || '').split(' / ')[0].trim()), all = [].concat(...Object.values(AL)), g = mean(all) || 0;
+  const wardStats = (br) => { const rows = br.rows.filter(a => (!XB.loc || a.loc === XB.loc) && (!XB.type || a.type === XB.type)), m = {}; const AL = alosOf(br.disc, d => String(d.ward || '').split(' / ')[0].trim()), all = [].concat(...Object.values(AL)), g = mean(all) || 0;
     rows.forEach(a => { const w = wardOf(a), o = m[w] = m[w] || { w, n: 0, beds: new Set(), subs: {}, cons: {}, pay: {}, type: {}, days: {} }; o.n++; if (bedOf(a)) o.beds.add(subOf(a) + '/' + bedOf(a)); o.subs[subOf(a)] = (o.subs[subOf(a)] || 0) + 1; o.cons[a.ck] = (o.cons[a.ck] || 0) + 1; o.pay[a.payer || 'Not recorded'] = (o.pay[a.payer || 'Not recorded'] || 0) + 1; o.type[a.type] = (o.type[a.type] || 0) + 1; o.days[a.date] = (o.days[a.date] || 0) + 1; });
-    return Object.values(m).map(o => { const al = AL[o.w] && AL[o.w].length >= 5 ? mean(AL[o.w]) : g, per = o.n / XB.win; return Object.assign(o, { per, alos: al, alosN: (AL[o.w] || []).length, demand: per * al }); }).sort((a, b) => b.n - a.n);
-  };
-  const wardDrawer = (o, br) => {
-    const top = (x, n) => Object.entries(x).sort((a, b) => b[1] - a[1]).slice(0, n);
+    return Object.values(m).map(o => { const al = AL[o.w] && AL[o.w].length >= 5 ? mean(AL[o.w]) : g, per = o.n / XB.win; return Object.assign(o, { per, alos: al, alosN: (AL[o.w] || []).length, demand: per * al }); }).sort((a, b) => b.n - a.n); };
+  const wardDrawer = (o, br) => { const top = (x, n) => Object.entries(x).sort((a, b) => b[1] - a[1]).slice(0, n);
     drawer(`<h2 style="margin:0 0 4px">${tc(o.w)}</h2><p class="note">Last ${XB.win} days to ${br.asOf}</p>` + kv([['Admissions', N(o.n)], ['Per day', o.per.toFixed(1)], ['Average length of stay', o.alos.toFixed(1) + ' days' + (o.alosN < 5 ? ' (hospital average)' : ' (' + o.alosN + ' discharges)')], ['Beds that received a patient', N(o.beds.size)], ['Bed demand (admissions per day × stay)', o.demand.toFixed(1) + ' beds']])
       + `<h3 style="margin:16px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#64748B">Wards inside</h3>` + tbl(['Ward', 'Admissions'], top(o.subs, 8).map(x => [tc(x[0]) || '—', N(x[1])]))
       + `<h3 style="margin:16px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#64748B">Admission type</h3>` + tbl(['Type', 'Admissions'], top(o.type, 6).map(x => [x[0], N(x[1])]))
-      + `<h3 style="margin:16px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#64748B">Top consultants</h3>` + tbl(['Consultant', 'Admissions'], top(o.cons, 8).map(x => [tc(x[0]), N(x[1])])));
-  };
+      + `<h3 style="margin:16px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#64748B">Top consultants</h3>` + tbl(['Consultant', 'Admissions'], top(o.cons, 8).map(x => [tc(x[0]), N(x[1])]))); };
   function drawBed(id) {
     const host = document.getElementById(ROOT[id]); if (!host || !XR.store) return;
     try {
@@ -1261,7 +1239,7 @@
         hist.forEach((s, i) => { if (i % ev === 0) g += lab(i, s.d); }); F.forEach((p, k) => { if ((hist.length + k) % ev === 0) g += lab(hist.length + k, p.d); });
         const end = F[F.length - 1], peak = F.reduce((a, p) => p.occ > a.occ ? p : a, F[0]);
         const flowH = S.slice(-14), mxf = Math.max(...flowH.map(s => Math.max(s.adm, s.dis)), ...F.slice(0, 7).map(p => Math.max(p.adm, p.dis)), 1) * 1.15, fw = (W - PL - 10) / (flowH.length + 7), fy = v => 150 * (1 - v / mxf) + 8;
-        let fg = '';[...flowH.map(s => ({ d: s.d, a: s.adm, b: s.dis, f: 0 })), ...F.slice(0, 7).map(p => ({ d: p.d, a: p.adm, b: p.dis, f: 1 }))].forEach((s, i) => { const x0 = PL + i * fw + fw * .08, tip = q('<span class="t">' + dl(s.d) + (s.f ? ' (forecast)' : '') + '</span>Admissions ' + Math.round(s.a) + '<br>Discharges ' + Math.round(s.b) + '<br>Net ' + (s.a - s.b >= 0 ? '+' : '') + Math.round(s.a - s.b)); fg += `<rect class="hitbar" x="${x0}" y="${fy(s.a)}" width="${fw * .38}" height="${158 - fy(s.a)}" fill="#14B8A6" opacity="${s.f ? .55 : 1}" data-tip="${tip}"/><rect class="hitbar" x="${x0 + fw * .42}" y="${fy(s.b)}" width="${fw * .38}" height="${158 - fy(s.b)}" fill="#F59E0B" opacity="${s.f ? .55 : 1}" data-tip="${tip}"/>`; if (i % 3 === 0) fg += `<text x="${x0 + fw * .4}" y="176" text-anchor="middle" font-size="10" fill="#64748B" font-family="Inter">${dl(s.d)}</text>`; });
+        let fg = ''; [...flowH.map(s => ({ d: s.d, a: s.adm, b: s.dis, f: 0 })), ...F.slice(0, 7).map(p => ({ d: p.d, a: p.adm, b: p.dis, f: 1 }))].forEach((s, i) => { const x0 = PL + i * fw + fw * .08, tip = q('<span class="t">' + dl(s.d) + (s.f ? ' (forecast)' : '') + '</span>Admissions ' + Math.round(s.a) + '<br>Discharges ' + Math.round(s.b) + '<br>Net ' + (s.a - s.b >= 0 ? '+' : '') + Math.round(s.a - s.b)); fg += `<rect class="hitbar" x="${x0}" y="${fy(s.a)}" width="${fw * .38}" height="${158 - fy(s.a)}" fill="#14B8A6" opacity="${s.f ? .55 : 1}" data-tip="${tip}"/><rect class="hitbar" x="${x0 + fw * .42}" y="${fy(s.b)}" width="${fw * .38}" height="${158 - fy(s.b)}" fill="#F59E0B" opacity="${s.f ? .55 : 1}" data-tip="${tip}"/>`; if (i % 3 === 0) fg += `<text x="${x0 + fw * .4}" y="176" text-anchor="middle" font-size="10" fill="#64748B" font-family="Inter">${dl(s.d)}</text>`; });
         html = `<div class="mkkpis">${kk('Occupancy rate', occPct.toFixed(1) + '%', N(last.occ) + ' of ' + N(last.beds) + ' beds')}${kk('Average LOS', alosRec ? alosRec.toFixed(1) + ' days' : '—', discAll.length ? N(discAll.length) + ' discharges on file' : 'needs discharge reports')}${kk('Available beds', N(avail), 'after maintenance', '#047857')}${kk('Current patients', N(last.occ), 'admitted as on ' + last.d)}${kk('Forecast accuracy', M.acc == null ? '—' : M.acc.toFixed(1) + '%', '7-day, tested on ' + N(M.n) + ' past forecasts')}</div>
         <div class="mkseg">${[7, 14, 28].map(v => `<button type="button" class="${XB.h === v ? 'on' : ''}" data-xh="${v}">${v}-day forecast</button>`).join('')}</div>
         ${card('Occupied beds: actual and forecast', `<svg viewBox="0 0 ${W} ${H}">${g}</svg><div class="legend"><span><i class="sw" style="background:#0F1731"></i>Actual</span><span><i class="sw" style="background:#0D9488"></i>Forecast</span><span><i class="sw" style="background:#14B8A6;opacity:.3"></i>95% range</span><span><i class="sw" style="background:#DC2626"></i>Usable beds</span></div>`, `In ${h} days: about <b>${Math.round(end.occ)}</b> beds (${(100 * end.occ / last.beds).toFixed(1)}%), 95% range ${Math.round(end.lo)} to ${Math.round(end.hi)}. Peak in this window: ${Math.round(peak.occ)} beds on ${dl(peak.d)}.`)}
@@ -1423,10 +1401,8 @@
   const addDays = (iso, n) => new Date(Date.parse(iso + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
   const dl = iso => new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' + new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' });
   const kv = (l, v, n, tone) => `<div class="card"><p class="note" style="margin:0">${l}</p><p class="kpi" style="font-size:24px${tone ? ';color:' + tone : ''}">${v}</p><p class="note" style="margin:0">${n || '&nbsp;'}</p></div>`;
-  const index = () => {
-    const s = lastSnap(); docDept = {}; deptSet = new Set(); if (!s) return; s.data.depts.forEach(d => deptSet.add(dk(d.name)));
-    s.data.doctors.slice().sort((a, b) => (b.ytd || 0) - (a.ytd || 0)).forEach(d => { const k = norm(d.name); if (k && !docDept[k]) docDept[k] = dk(d.dept); });
-  };
+  const index = () => { const s = lastSnap(); docDept = {}; deptSet = new Set(); if (!s) return; s.data.depts.forEach(d => deptSet.add(dk(d.name)));
+    s.data.doctors.slice().sort((a, b) => (b.ytd || 0) - (a.ytd || 0)).forEach(d => { const k = norm(d.name); if (k && !docDept[k]) docDept[k] = dk(d.dept); }); };
   const isDept = n => deptSet.has(dk(n));
   const of = ck => docDept[norm(ck)];
 
@@ -1467,22 +1443,14 @@
     <div class="card" style="margin-top:12px"><h2>Doctors in this department</h2><p class="note">Month to date from the management report. Click a doctor to open the doctor report.</p><div class="lgscroll" style="max-height:360px"><table><thead><tr><th class="l">Doctor</th><th>Month to date</th><th>Share</th><th>Year to date</th><th>vs last year</th><th>OPD visits</th></tr></thead><tbody>${R.docs.slice().sort((a, b) => (b.mtd || 0) - (a.mtd || 0)).map(x => `<tr><td class="l"><span class="docname" data-doc="${q(x.dept + '|' + x.name)}">${q(x.name)}</span></td><td><b>${N(x.mtd)}</b><span class="bar" style="width:${Math.max(2, 100 * (x.mtd || 0) / maxD)}%"></span></td><td>${pct(x.mtd, totM)}</td><td>${N(x.ytd)}</td><td>${x.lyytd ? pnt(100 * (x.ytd - x.lyytd) / x.lyytd) : '—'}</td><td>${N(x.visits)}</td></tr>`).join('')}</tbody></table></div></div>
     <div class="card" style="margin-top:12px"><h2>Day by day</h2><p class="note">OP consultations and admissions of this department, most recent 14 days on file. Revenue shows a dash where no daily closing is held.</p><div class="lgscroll" style="max-height:420px"><table><thead><tr><th class="l">Date</th><th>OP</th><th>New</th><th>Admissions</th><th>Emergency</th><th>Per 100 OP</th><th>Revenue</th></tr></thead><tbody>${R.dates.map(dt => { const x = R.day[dt]; return `<tr><td class="l">${dl(dt)}</td><td>${N(x.v)}</td><td>${N(x.n)}</td><td>${N(x.a)}</td><td>${N(x.e)}</td><td>${x.v ? Math.round(100 * x.a / x.v) + '%' : '—'}</td><td>${x.rev != null ? N(x.rev) : '—'}</td></tr>`; }).join('') || '<tr><td class="l" colspan="7">No daily data in this period.</td></tr>'}</tbody></table></div></div>`;
   }
-  function overlay() {
-    let o = document.getElementById('deptDrill'); if (!o) {
-      o = document.createElement('div'); o.id = 'deptDrill'; o.className = 'hidden'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Department report'); o.innerHTML = '<div class="drillbox"><div id="deptDrillBody"></div></div>';
-      o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-dclose]')) o.classList.add('hidden'); else if (e.target.closest('[data-doc]')) o.classList.add('hidden'); }); document.body.appendChild(o);
-    } return o;
-  }
-  function open(name) {
-    if (!RT.store) return; CUR = name; const R = report(name), o = overlay(); if (!R) return; document.getElementById('deptDrillBody').innerHTML = html(R); o.classList.remove('hidden'); o.scrollTop = 0;
-    const sel = document.getElementById('dprd'); if (sel) sel.onchange = () => { PD = sel.value; const keep = o.scrollTop; document.getElementById('deptDrillBody').innerHTML = html(report(CUR)); o.scrollTop = keep; const s2 = document.getElementById('dprd'); if (s2) s2.onchange = sel.onchange; };
-  }
+  function overlay() { let o = document.getElementById('deptDrill'); if (!o) { o = document.createElement('div'); o.id = 'deptDrill'; o.className = 'hidden'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Department report'); o.innerHTML = '<div class="drillbox"><div id="deptDrillBody"></div></div>';
+      o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-dclose]')) o.classList.add('hidden'); else if (e.target.closest('[data-doc]')) o.classList.add('hidden'); }); document.body.appendChild(o); } return o; }
+  function open(name) { if (!RT.store) return; CUR = name; const R = report(name), o = overlay(); if (!R) return; document.getElementById('deptDrillBody').innerHTML = html(R); o.classList.remove('hidden'); o.scrollTop = 0;
+    const sel = document.getElementById('dprd'); if (sel) sel.onchange = () => { PD = sel.value; const keep = o.scrollTop; document.getElementById('deptDrillBody').innerHTML = html(report(CUR)); o.scrollTop = keep; const s2 = document.getElementById('dprd'); if (s2) s2.onchange = sel.onchange; }; }
   function mark() {
     if (!deptSet.size) return;
-    document.querySelectorAll('table').forEach(t => {
-      const h = t.tHead && t.tHead.rows[0] && t.tHead.rows[0].cells[0]; if (!h || h.textContent.trim() !== 'Department' || !t.tBodies[0]) return;
-      [...t.tBodies[0].rows].forEach(tr => { if (tr.dataset.deptReport || tr.classList.contains('xp-docs') || !tr.cells.length) return; const n = tr.cells[0].textContent.trim(); if (isDept(n)) { tr.dataset.deptReport = n; tr.classList.add('dept-click'); tr.title = 'Click for the department report'; } });
-    });
+    document.querySelectorAll('table').forEach(t => { const h = t.tHead && t.tHead.rows[0] && t.tHead.rows[0].cells[0]; if (!h || h.textContent.trim() !== 'Department' || !t.tBodies[0]) return;
+      [...t.tBodies[0].rows].forEach(tr => { if (tr.dataset.deptReport || tr.classList.contains('xp-docs') || !tr.cells.length) return; const n = tr.cells[0].textContent.trim(); if (isDept(n)) { tr.dataset.deptReport = n; tr.classList.add('dept-click'); tr.title = 'Click for the department report'; } }); });
     document.querySelectorAll('.deptTag:not([data-dept-report]), .pf-who span:not([data-dept-report])').forEach(el => { const n = el.textContent.split(' · ')[0].trim(); if (n && isDept(n)) { el.dataset.deptReport = n; el.classList.add('dept-click'); el.title = 'Click for the department report'; } });
     document.querySelectorAll('details.dept > summary').forEach(sm => { if (sm.querySelector('.dept-rep')) return; const dn = sm.querySelector('.dname'), n = dn ? dn.textContent.trim() : ''; if (!isDept(n)) return; const b = document.createElement('button'); b.type = 'button'; b.className = 'dept-rep'; b.textContent = 'Department report'; b.dataset.deptReport = n; sm.appendChild(b); });
   }
@@ -1492,4 +1460,233 @@
   const prev = window.__PRESCO_ENHANCER_READY;
   window.__PRESCO_ENHANCER_READY = payload => { if (typeof prev === 'function') prev(payload); RT = payload || RT; index(); mark(); new MutationObserver(queue).observe(document.body, { childList: true, subtree: true }); };
   window.__PRESCO_DEPT_REPORT = open;
+})();
+
+/* =====================================================================
+   UI POLISH: click-to-sort tables, remember the last open tab
+   ===================================================================== */
+(function () {
+  'use strict';
+  const parse = t => {
+    const s = String(t).replace(/[₹,\s]/g, '');
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return null;
+    const m = s.match(/^([+-]?\d+(?:\.\d+)?)(Cr|L|K)?/i);
+    if (!m) return null;
+    let v = parseFloat(m[1]);
+    const u = (m[2] || '').toLowerCase();
+    if (u === 'cr') v *= 1e7; else if (u === 'l') v *= 1e5; else if (u === 'k') v *= 1e3;
+    return v;
+  };
+  const cell = (tr, i) => (tr.cells[i] ? tr.cells[i].textContent.trim() : '');
+  function sortTable(th) {
+    const table = th.closest('table'), head = th.parentElement, body = table.tBodies[0];
+    if (!table || !body || table.querySelector('th[data-sort]') || body.querySelector('.xp-docs')) return;
+    const idx = [...head.cells].indexOf(th), rows = [...body.rows];
+    if (!rows.length || rows.some(r => r.cells.length !== head.cells.length)) return;
+    const prev = th.dataset.xsort, dir = prev === 'desc' ? 'asc' : prev === 'asc' ? 'desc' : (rows.every(r => parse(cell(r, idx)) !== null) ? 'desc' : 'asc');
+    [...head.cells].forEach(c => { delete c.dataset.xsort; });
+    th.dataset.xsort = dir;
+    rows.sort((a, b) => {
+      const x = cell(a, idx), y = cell(b, idx), nx = parse(x), ny = parse(y);
+      const r = nx !== null && ny !== null ? nx - ny : x.localeCompare(y, undefined, { numeric: true });
+      return dir === 'asc' ? r : -r;
+    });
+    rows.forEach(r => body.appendChild(r));
+  }
+  document.addEventListener('click', e => {
+    const th = e.target.closest('thead th');
+    if (!th || e.target.closest('#deptDrill, #xDrawer, #app, #drill') === null) return;
+    if (th.closest('table') && th.closest('table').tHead && th.parentElement === th.closest('table').tHead.rows[th.closest('table').tHead.rows.length - 1]) sortTable(th);
+  });
+  /* remember the last opened tab */
+  const KEY = 'presco-last-tab';
+  document.addEventListener('click', e => {
+    const b = e.target.closest('button[role="tab"]');
+    if (b && b.id) { try { localStorage.setItem(KEY, b.id); } catch (err) { /* ignore */ } }
+  });
+  const prev = window.__PRESCO_ENHANCER_READY;
+  window.__PRESCO_ENHANCER_READY = payload => {
+    if (typeof prev === 'function') prev(payload);
+    setTimeout(() => {
+      let id = null;
+      try { id = localStorage.getItem(KEY); } catch (err) { /* ignore */ }
+      const b = id && document.getElementById(id);
+      if (b && b.getAttribute('aria-selected') !== 'true') b.click();
+    }, 350);
+  };
+})();
+
+/* =====================================================================
+   PHARMACY ANALYTICS
+   Real data used: pharmacy store revenue lines of the management dashboard report (OP, IP, OT and central
+   pharmacy of every branch: today, yesterday, month, previous months, year, last year, daily history),
+   the reported OP pharmacy margin, and the OP pharmacy bills, returns and refunds of the bill register.
+   Not in any loaded source (so shown as "Data integration required", never estimated):
+   stock on hand, stock value, GRN, vendors, items, batches, expiry, transfers and adjustments.
+   ===================================================================== */
+(function () {
+  'use strict';
+  let RT = { store: null, getBillRows: null };
+  const ROOT = { phov: 'phovDashboard', phsa: 'phsaDashboard', phbr: 'phbrDashboard', phgr: 'phgrDashboard', phst: 'phstDashboard', phit: 'phitDashboard' };
+  const TABS = { 't-phov': 'phov', 't-phsa': 'phsa', 't-phbr': 'phbr', 't-phgr': 'phgr', 't-phst': 'phst', 't-phit': 'phit' };
+  const PH = { branch: '', type: '', tx: '', range: 'month', from: '', to: '', level: 'year', month: '' };
+  const N = n => Math.round(n || 0).toLocaleString('en-IN');
+  const C = n => { const a = Math.abs(n || 0); return a >= 1e7 ? (n / 1e7).toFixed(2) + ' Cr' : a >= 1e5 ? (n / 1e5).toFixed(2) + ' L' : N(n); };
+  const RS = n => '₹' + C(n), q = t => String(t == null ? '' : t).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const tc = t => String(t || '').toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase());
+  const pc = (a, b) => b ? (100 * (a - b) / b) : null;
+  const pnt = v => v == null ? '' : `<span class="${v >= 0 ? 'up' : 'down'}">${v >= 0 ? '+' : ''}${v.toFixed(1)}%</span>`;
+  const addDays = (iso, n) => new Date(Date.parse(iso + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
+  const dl = iso => new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  const dlf = iso => new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const kk = (l, v, n, tone, go) => `<div class="mkk"${go ? ` data-phgo="${go}" title="Open the detailed report"` : ''}><span>${l}</span><b${tone ? ` style="color:${tone}"` : ''}>${v}</b><small>${n || '&nbsp;'}</small></div>`;
+  const need = (l, w) => `<div class="mkk phneed"><span>${l}</span><b style="font-size:14px;color:#64748B">Data integration required</b><small>${w || '&nbsp;'}</small></div>`;
+  const card = (t, body, note) => `<div class="card" style="margin-top:16px"><h2>${t}</h2>${note ? `<p class="note">${note}</p>` : ''}${body}</div>`;
+  const tbl = (head, rows) => `<div style="overflow-x:auto"><table class="btx"><thead><tr>${head.map((h, i) => `<th${i === 0 ? ' class="l"' : ''}>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td${i === 0 ? ' class="l"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  const tips = host => { if (host.__pt) return; host.__pt = true; const el = () => document.getElementById('tip');
+    host.addEventListener('mousemove', e => { const t = e.target.closest('[data-tip]'), x = el(); if (!x) return; if (!t) { x.classList.remove('on'); return; } x.innerHTML = t.dataset.tip; x.classList.add('on'); x.style.left = Math.min(e.clientX + 14, window.innerWidth - 290) + 'px'; x.style.top = (e.clientY + 16) + 'px'; });
+    host.addEventListener('mouseleave', () => { const x = el(); if (x) x.classList.remove('on'); }); };
+  const drawer = html => { let d = document.getElementById('phDrawer'); if (!d) { d = document.createElement('div'); d.id = 'phDrawer'; document.body.appendChild(d); }
+    d.innerHTML = html ? `<div class="mkdrawer-bg" data-pc></div><aside class="mkdrawer" style="width:min(680px,100vw)"><button type="button" class="mkx" data-pc aria-label="Close">&times;</button>${html}</aside>` : '';
+    d.querySelectorAll('[data-pc]').forEach(b => { b.onclick = () => { d.innerHTML = ''; }; }); };
+  const COL = { OP: '#14B8A6', IP: '#38BDF8', OT: '#F59E0B', Central: '#A78BFA', Other: '#94A3B8' };
+
+  /* ---------- data ---------- */
+  const snaps = () => ((RT.store && RT.store.snapshots) || []).filter(s => s.data && s.data.svc && s.data.kpi).slice().sort((a, b) => a.asOf < b.asOf ? -1 : 1);
+  const typeOf = n => /\bip pharmacy/i.test(n) ? 'IP' : /\bop pharmacy/i.test(n) ? 'OP' : /\bot pharmacy/i.test(n) ? 'OT' : /central pharmacy/i.test(n) ? 'Central' : 'Other';
+  const branchOf = n => { const p = n.match(/\(([^)]+)\)/); if (p) return tc(p[1].trim()); if (/-/.test(n)) return tc(n.split('-')[0].trim()); return 'Main / unassigned'; };
+  const pharmRows = s => s.data.svc.filter(x => /pharmacy/i.test(x.name)).map(x => Object.assign({}, x, { type: typeOf(x.name), branch: branchOf(x.name) }));
+  const ok = r => (!PH.branch || r.branch === PH.branch) && (!PH.type || r.type === PH.type);
+  const sum = (a, f) => a.reduce((x, r) => x + (r[f] || 0), 0);
+  const daily = (ss) => ss.map(s => { const o = { d: s.asOf, total: 0, by: { OP: 0, IP: 0, OT: 0, Central: 0, Other: 0 }, margin: (s.data.kpi.opPharmMargin || {}).today, opk: (s.data.kpi.opPharm || {}).today }; pharmRows(s).filter(ok).forEach(r => { o.total += r.today || 0; o.by[r.type] += r.today || 0; }); return o; });
+  const regRows = () => (RT.getBillRows ? RT.getBillRows() : []).filter(r => r.tran === 'OPP' && (!r.st || r.st === 'A'));
+  const regKind = r => /return/i.test(r.type) ? 'Return' : /refund/i.test(r.type) ? 'Refund' : 'Bill';
+  const regFilter = (from, to) => regRows().filter(r => r.bdate >= from && r.bdate <= to && (!PH.branch || tc(r.loc) === PH.branch) && (!PH.tx || regKind(r) === PH.tx));
+  const regSummary = rr => { const bills = rr.filter(r => regKind(r) === 'Bill'), rets = rr.filter(r => regKind(r) === 'Return'), refs = rr.filter(r => regKind(r) === 'Refund'), days = new Set(rr.map(r => r.bdate)).size;
+    const gross = sum(bills, 'net'), ret = Math.abs(sum(rets, 'net')); return { bills: bills.length, gross, ret, retN: rets.length, refN: refs.length, net: sum(rr, 'net'), avg: bills.length ? gross / bills.length : 0, days, perDay: days ? sum(rr, 'net') / days : 0 }; };
+  const regSpan = () => { const d = regRows().map(r => r.bdate).sort(); return d.length ? [d[0], d[d.length - 1]] : null; };
+
+  /* ---------- period ---------- */
+  function period(ss) {
+    const last = ss[ss.length - 1], asOf = last.asOf, rows = pharmRows(last).filter(ok), dly = daily(ss), within = (a, b) => dly.filter(x => x.d >= a && x.d <= b);
+    const R = PH.range; let o = { label: '', from: asOf, to: asOf, value: 0, cmp: null, cmpLabel: '' };
+    if (R === 'today') Object.assign(o, { label: 'Today, ' + dlf(asOf), value: sum(rows, 'today'), cmp: sum(rows, 'yest'), cmpLabel: 'yesterday' });
+    else if (R === 'yesterday') { const y = addDays(asOf, -1); Object.assign(o, { label: 'Yesterday, ' + dlf(y), from: y, to: y, value: sum(rows, 'yest'), cmp: sum(rows, 'dby'), cmpLabel: 'the day before' }); }
+    else if (R === 'week') { const f = addDays(asOf, -6), w = within(f, asOf), p = within(addDays(f, -7), addDays(f, -1)); Object.assign(o, { label: 'Last 7 days, ' + dl(f) + ' to ' + dl(asOf), from: f, value: w.reduce((a, x) => a + x.total, 0), cmp: p.length >= 7 ? p.reduce((a, x) => a + x.total, 0) : null, cmpLabel: 'the 7 days before' }); }
+    else if (R === 'month') Object.assign(o, { label: 'This month to date, ' + asOf.slice(0, 8) + '01 to ' + asOf, from: asOf.slice(0, 8) + '01', value: sum(rows, 'mtd'), cmp: sum(rows, 'lymtd'), cmpLabel: 'the same period last year' });
+    else if (R === 'year') Object.assign(o, { label: 'Year to date, ' + asOf.slice(0, 4) + '-01-01 to ' + asOf, from: asOf.slice(0, 4) + '-01-01', value: sum(rows, 'ytd'), cmp: sum(rows, 'lyytd'), cmpLabel: 'the same period last year' });
+    else { const f = PH.from || asOf, t = PH.to || asOf, w = within(f, t), n = Math.max(1, Math.round((Date.parse(t) - Date.parse(f)) / 864e5) + 1), p = within(addDays(f, -n), addDays(f, -1)); Object.assign(o, { label: 'Custom, ' + dl(f) + ' to ' + dl(t), from: f, to: t, value: w.reduce((a, x) => a + x.total, 0), cmp: p.length >= n ? p.reduce((a, x) => a + x.total, 0) : null, cmpLabel: 'the period before', days: w.length }); }
+    o.pct = o.cmp ? pc(o.value, o.cmp) : null; o.rows = rows; o.asOf = asOf; o.dly = dly; return o;
+  }
+  const scope = () => `<p class="note" style="margin:0 2px 8px"><b>Reporting scope:</b> ${PH.branch ? q(PH.branch) : 'All branches'}${PH.type ? ' · ' + PH.type + ' pharmacy' : ' · all pharmacy stores'} · sales are the OP, IP, OT and central pharmacy lines of the management report</p>`;
+  const opt = (l, k, vals, all) => `<div class="field"><label>${l}</label><select data-ph="${k}"><option value="">${all}</option>${vals.map(v => `<option value="${q(v[0])}"${PH[k] === v[0] ? ' selected' : ''}>${q(v[1])}</option>`).join('')}</select></div>`;
+  const ranges = [['today', 'Today'], ['yesterday', 'Yesterday'], ['week', 'Last 7 days'], ['month', 'This month'], ['year', 'This year'], ['custom', 'Custom range']];
+  const filt = (ss, o) => { const br = [...new Set(pharmRows(ss[ss.length - 1]).map(r => r.branch))].sort(); o = o || {};
+    return `<div class="controls">${opt('Branch', 'branch', br.map(v => [v, v]), 'All branches')}${opt('Store', 'type', [['OP', 'OP pharmacy'], ['IP', 'IP pharmacy'], ['OT', 'OT pharmacy'], ['Central', 'Central pharmacy']], 'All stores')}${o.tx ? opt('Transaction type', 'tx', [['Bill', 'Sales bills'], ['Return', 'Returns'], ['Refund', 'Refunds']], 'All types') : ''}<span style="margin-left:auto;display:flex;gap:8px"><button type="button" class="btn ghost sm" id="phcsv">Export (Excel / CSV)</button><button type="button" class="btn ghost sm" onclick="window.print()">Print / PDF</button></span></div>`; };
+  const seg = () => `<div class="mkseg" style="flex-wrap:wrap">${ranges.map(r => `<button type="button" class="${PH.range === r[0] ? 'on' : ''}" data-phr="${r[0]}">${r[1]}</button>`).join('')}</div>${PH.range === 'custom' ? `<div class="controls" style="margin-top:10px"><div class="field"><label>From</label><input type="date" data-ph="from" value="${q(PH.from)}"></div><div class="field"><label>To</label><input type="date" data-ph="to" value="${q(PH.to)}"></div></div>` : ''}`;
+  const stack = (dly, cap) => { const W = 860, H = 230, PL = 56, PB = 36, PT = 12, mx = Math.max(...dly.map(x => x.total), 1) * 1.12, bw = (W - PL - 10) / Math.max(dly.length, 1), y = v => PT + (H - PT - PB) * (1 - v / mx), st = Math.ceil(dly.length / 14);
+    let g = ''; for (let i = 0; i <= 4; i++) { const v = mx * i / 4; g += `<line x1="${PL}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="#E2E8F0"/><text x="${PL - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#64748B" font-family="Inter">${C(v)}</text>`; }
+    dly.forEach((x, i) => { let acc = 0; const bx = PL + i * bw + bw * .14, tip = '<span class="t">' + dlf(x.d) + '</span>' + Object.keys(COL).filter(c => x.by[c]).map(c => c + ' ' + RS(x.by[c])).join('<br>') + '<br><b>Total ' + RS(x.total) + '</b>';
+      Object.keys(COL).forEach(c => { const v = Math.max(x.by[c], 0); if (!v) return; g += `<rect class="hitbar" x="${bx}" y="${y(acc + v)}" width="${bw * .72}" height="${Math.max(1, y(acc) - y(acc + v))}" fill="${COL[c]}" data-tip="${q(tip)}"/>`; acc += v; });
+      if (i % st === 0) g += `<text x="${bx + bw * .36}" y="${H - PB + 16}" text-anchor="middle" font-size="10.5" fill="#64748B" font-family="Inter">${dl(x.d)}</text>`; });
+    return `<svg viewBox="0 0 ${W} ${H}">${g}</svg><div class="legend">${Object.keys(COL).filter(c => dly.some(x => x.by[c])).map(c => `<span><i class="sw" style="background:${COL[c]}"></i>${c} pharmacy</span>`).join('')}</div>`; };
+  const reg = () => { const sp = regSpan(); return sp ? `Bill register: ${sp[0]} to ${sp[1]}` : 'No bill register loaded'; };
+  const integ = (title, intro, kpis, fields, extra) => `<div class="card" style="border-style:dashed;margin-top:14px"><h2>${title}: data integration required</h2><p class="note">${intro}</p></div>
+    <div class="mkkpis" style="margin-top:12px">${kpis.map(k => need(k[0], k[1])).join('')}</div>
+    ${card('Fields needed from the pharmacy system', tbl(['Field', 'Used for', 'Status in the loaded reports'], fields.map(f => [f[0], f[1], '<span class="pf-v wl">Not in source</span>'])), 'Once these are connected the sections below fill automatically and totals can be reconciled with the pharmacy system.')}${extra || ''}`;
+
+  function draw(id) {
+    const host = document.getElementById(ROOT[id]); if (!host || !RT.store) return;
+    try {
+      const ss = snaps(); if (!ss.length) { host.innerHTML = card('No management report loaded', '<p class="note" style="margin:0">Pharmacy sales come from the management dashboard report.</p>'); return; }
+      const P = period(ss), last = ss[ss.length - 1], k = last.data.kpi, asOf = last.asOf; let html = '';
+      if (id === 'phov') {
+        const sp = regSpan(), rr = sp ? regFilter(P.from < sp[0] ? sp[0] : P.from, P.to > sp[1] ? sp[1] : P.to) : [], RG = regSummary(rr), covered = sp && P.from <= sp[1] && P.to >= sp[0];
+        const all = pharmRows(last).filter(ok), opM = (k.opPharmMargin || {}).mtd || 0;
+        html = filt(ss) + scope() + seg() + `<p class="note" style="margin:8px 2px 0"><b>Period:</b> ${P.label}. As on ${asOf}.</p>
+        <div class="mkkpis" style="margin-top:10px">${need('Total current stock quantity', 'needs the stock ledger')}${need('Total stock value', 'needs the stock ledger')}${kk('Total pharmacy sales', RS(P.value), P.cmp != null ? pnt(P.pct) + ' vs ' + P.cmpLabel + ' (' + RS(P.cmp) + ')' : 'no comparison period on file', '#0F766E', 'sales')}${need('Total GRN generated', 'needs GRN records')}</div>
+        <div class="mkkpis" style="margin-top:12px">${need('Total GRN value', 'needs GRN records')}${kk('Total returns', covered ? RS(RG.ret) : '—', covered ? N(RG.retN) + ' OP pharmacy returns · ' + reg() : 'outside the bill register period. ' + reg(), '#B45309', 'returns')}${need('Closing / available stock', 'needs the stock ledger')}${need('Active items', 'needs the item master')}</div>
+        <div class="mkkpis" style="margin-top:12px">${kk('OP pharmacy sales', RS((k.opPharm || {}).mtd), 'this month to date · last year ' + RS((k.opPharm || {}).lymtd), '', 'sales')}${kk('OP pharmacy gross margin', opM.toFixed(1) + '%', 'reported month to date · last month ' + ((k.opPharmMargin || {}).pmt || 0).toFixed(1) + '%', '#047857', 'margin')}${kk('Bills', covered ? N(RG.bills) : '—', covered ? 'OP pharmacy bills · ' + reg() : 'outside the bill register', '', 'bills')}${kk('Average bill value', covered ? '₹' + N(RG.avg) : '—', 'sales bills only')}${kk('Net sales (OP bills)', covered ? RS(RG.net) : '—', 'after returns and refunds')}</div>
+        ${card('Day-wise pharmacy sales', stack(P.dly.filter(x => x.d >= addDays(asOf, -29))), 'Last 30 days on file, by store type. Source: management report.')}
+        ${card('Comparison with previous periods', tbl(['Period', 'Pharmacy sales', 'Compared with', 'Change'], [['Today', RS(sum(P.rows, 'today')), 'Yesterday ' + RS(sum(P.rows, 'yest')), pnt(pc(sum(P.rows, 'today'), sum(P.rows, 'yest')))], ['This month to date', RS(sum(P.rows, 'mtd')), 'Same period last year ' + RS(sum(P.rows, 'lymtd')), pnt(pc(sum(P.rows, 'mtd'), sum(P.rows, 'lymtd')))], ['Last month (full)', RS(sum(P.rows, 'pmt')), 'Month before ' + RS(sum(P.rows, 'bpm')), pnt(pc(sum(P.rows, 'pmt'), sum(P.rows, 'bpm')))], ['This year to date', RS(sum(P.rows, 'ytd')), 'Same period last year ' + RS(sum(P.rows, 'lyytd')), pnt(pc(sum(P.rows, 'ytd'), sum(P.rows, 'lyytd')))]]))}
+        ${card('Pharmacy sales by store', tbl(['Store', 'Branch', 'Today', 'This month', 'Last month', 'Year to date', 'vs last year'], all.slice().sort((a, b) => b.ytd - a.ytd).map(r => [r.name, r.branch, N(r.today), N(r.mtd), N(r.pmt), '<b>' + N(r.ytd) + '</b>', pnt(pc(r.ytd, r.lyytd))])), 'Click a store type or branch in the filters to narrow the list.')}
+        ${recon(ss)}${readiness()}`;
+      }
+      if (id === 'phsa') {
+        const asY = asOf.slice(0, 4), months = [...new Set(ss.map(s => s.asOf.slice(0, 7)))].sort(), lvl = PH.level;
+        const trail = `<p class="note" style="margin:6px 2px 10px"><button type="button" class="btn ghost sm" data-phl="year">Year ${asY}</button> ${lvl !== 'year' ? '› <button type="button" class="btn ghost sm" data-phl="month">Months</button>' : ''} ${lvl === 'day' ? '› <b>' + q(PH.month) + ' by day</b>' : ''}</p>`;
+        const sp = regSpan(), rr = sp ? regFilter(P.from < sp[0] ? sp[0] : P.from, P.to > sp[1] ? sp[1] : P.to) : [], RG = regSummary(rr), covered = sp && P.from <= sp[1] && P.to >= sp[0];
+        html = filt(ss, { tx: true }) + scope() + seg() + `<p class="note" style="margin:8px 2px 0"><b>Period:</b> ${P.label}.</p>
+        <div class="mkkpis" style="margin-top:10px">${kk('Total sales amount', RS(P.value), P.cmp != null ? pnt(P.pct) + ' vs ' + P.cmpLabel : 'no comparison on file', '#0F766E')}${kk('Number of bills', covered ? N(RG.bills) : '—', covered ? 'OP pharmacy, ' + reg() : 'outside the bill register')}${need('Total items sold', 'bills carry amounts, not items')}${kk('Average bill value', covered ? '₹' + N(RG.avg) : '—', 'sales bills only')}${kk('Sales returns', covered ? RS(RG.ret) : '—', covered ? N(RG.retN) + ' returns · ' + N(RG.refN) + ' refunds' : '', '#B45309')}${kk('Net sales', covered ? RS(RG.net) : RS(P.value), covered ? 'OP bills after returns' : 'management report figure')}</div>
+        ${card('Day-wise sales trend', stack(P.dly.filter(x => x.d >= P.from && x.d <= P.to).length > 1 ? P.dly.filter(x => x.d >= P.from && x.d <= P.to) : P.dly.slice(-30)), 'Shows the selected period, or the last 30 days when the period is a single day.')}
+        ${card('Year, month and day drill-down', trail + (lvl === 'year' ? tbl(['Year', 'Sales (to date)', 'Last year, same period', 'Change', 'Open'], [[asY + ' (year to date)', '<b>' + RS(sum(P.rows, 'ytd')) + '</b>', RS(sum(P.rows, 'lyytd')), pnt(pc(sum(P.rows, 'ytd'), sum(P.rows, 'lyytd'))), '<button type="button" class="btn ghost sm" data-phl="month">Months</button>']]) : '') + (lvl === 'month' ? tbl(['Month', 'Sales', 'Compared with', 'Change', 'Open'], [...months.slice().reverse().map(m => { const cur = m === asOf.slice(0, 7), d = daily(ss).filter(x => x.d.slice(0, 7) === m).filter(x => true), tot = cur ? sum(P.rows, 'mtd') : (m === addDays(asOf.slice(0, 8) + '01', -1).slice(0, 7) ? sum(P.rows, 'pmt') : null);
+          return [m + (cur ? ' (to date)' : ''), tot != null ? '<b>' + RS(tot) + '</b>' : RS(d.reduce((a, x) => a + x.total, 0)) + ' <span class="note">(days on file)</span>', cur ? 'Same period last year ' + RS(sum(P.rows, 'lymtd')) : 'Month before ' + RS(sum(P.rows, 'bpm')), cur ? pnt(pc(sum(P.rows, 'mtd'), sum(P.rows, 'lymtd'))) : pnt(pc(sum(P.rows, 'pmt'), sum(P.rows, 'bpm'))), `<button type="button" class="btn ghost sm" data-phm="${m}">Days</button>`]; })]) : '') + (lvl === 'day' ? tbl(['Date', 'Sales', 'Change on previous day', 'OP', 'IP', 'OT', 'Central'], P.dly.filter(x => x.d.slice(0, 7) === PH.month).slice().reverse().map((x, i, a) => { const pv = a[i + 1]; return [dlf(x.d) + ' ' + new Date(x.d + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' }), '<b>' + RS(x.total) + '</b>', pv ? pnt(pc(x.total, pv.total)) : '', N(x.by.OP), N(x.by.IP), N(x.by.OT), N(x.by.Central)]; })) : ''), 'Daily detail exists only for the days with a daily management report. Earlier months are available as monthly totals.')}`;
+      }
+      if (id === 'phbr') {
+        const brs = {}; P.rows.length; pharmRows(last).filter(r => !PH.type || r.type === PH.type).forEach(r => { const b = brs[r.branch] = brs[r.branch] || { b: r.branch, today: 0, mtd: 0, pmt: 0, ytd: 0, lyytd: 0, lymtd: 0, st: [] }; b.today += r.today; b.mtd += r.mtd; b.pmt += r.pmt; b.ytd += r.ytd; b.lyytd += r.lyytd; b.lymtd += r.lymtd; b.st.push(r); });
+        const sp = regSpan(), dayN = +asOf.slice(8), rr = sp ? regRows().filter(r => (!PH.tx || regKind(r) === PH.tx)) : [], by = {}; rr.forEach(r => { const b = tc(r.loc); (by[b] = by[b] || []).push(r); });
+        const list = Object.values(brs).sort((a, b) => b.mtd - a.mtd).filter(b => !PH.branch || b.b === PH.branch), tot = sum(list, 'mtd') || 1, mx = Math.max(...list.map(b => Math.max(b.mtd, b.pmt)), 1);
+        const W = 860, H = 240, PL = 56, PB = 46, PT = 12, bw = (W - PL - 10) / Math.max(list.length, 1), y = v => PT + (H - PT - PB) * (1 - v / (mx * 1.1)); let g = ''; for (let i = 0; i <= 4; i++) { const v = mx * 1.1 * i / 4; g += `<line x1="${PL}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="#E2E8F0"/><text x="${PL - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#64748B" font-family="Inter">${C(v)}</text>`; }
+        list.forEach((b, i) => { const x = PL + i * bw + bw * .12; [[b.pmt, '#BFE9E4', 'Last month'], [b.mtd, '#0D9488', 'This month to date']].forEach(([v, c, t], j) => { g += `<rect class="hitbar" x="${x + j * bw * .38}" y="${y(v)}" width="${bw * .34}" height="${Math.max(1, H - PB - y(v))}" rx="2" fill="${c}" data-tip="${q('<span class="t">' + b.b + '</span>' + t + ' ' + RS(v))}"/>`; }); g += `<text x="${x + bw * .36}" y="${H - PB + 16}" text-anchor="middle" font-size="10.5" fill="#475569" font-family="Inter">${q(b.b.slice(0, 11))}</text>`; });
+        const regOnly = Object.keys(by).filter(n => !brs[n]);
+        html = filt(ss, { tx: true }) + scope() + `<div class="mkkpis">${kk('Branches with a pharmacy', N(list.length), 'from the management report')}${kk('Pharmacy sales this month', RS(sum(list, 'mtd')), pnt(pc(sum(list, 'mtd'), sum(list, 'lymtd'))) + ' vs same period last year')}${kk('Average sales per day', RS(sum(list, 'mtd') / (dayN || 1)), 'month to date, ' + dayN + ' days')}${kk('Year to date', RS(sum(list, 'ytd')), pnt(pc(sum(list, 'ytd'), sum(list, 'lyytd'))) + ' vs last year')}${need('Current stock and GRN by branch', 'needs the stock ledger and GRN')}</div>
+        ${card('Branch comparison', `<svg viewBox="0 0 ${W} ${H}">${g}</svg><div class="legend"><span><i class="sw" style="background:#BFE9E4"></i>Last month</span><span><i class="sw" style="background:#0D9488"></i>This month to date</span></div>`, 'Last month is a full month, this month is part-way.')}
+        ${card('Branch-wise pharmacy report', `<p class="note">Click a branch for its stores and bills. Stock, GRN and closing stock columns need the pharmacy system.</p>` + `<div class="lgscroll"><table><thead><tr><th class="l">Branch</th><th>Sales this month</th><th>Share</th><th>Avg per day</th><th>Last month</th><th>Year to date</th><th>vs last year</th><th>OP bills</th><th>Returns</th><th>Current stock</th><th>Stock value</th><th>GRN qty / value</th><th>Closing stock</th></tr></thead><tbody>${list.map(b => { const rg = regSummary(by[b.b.toUpperCase().replace(/ /g, ' ')] || by[b.b] || []); return `<tr class="brrow" data-phb="${q(b.b)}"><td class="l"><b>${q(b.b)}</b></td><td><b>${N(b.mtd)}</b></td><td>${(100 * b.mtd / tot).toFixed(1)}%<span class="bar" style="width:${Math.max(3, 100 * b.mtd / (list[0].mtd || 1))}%"></span></td><td>${N(b.mtd / (dayN || 1))}</td><td>${N(b.pmt)}</td><td>${N(b.ytd)}</td><td>${pnt(pc(b.ytd, b.lyytd))}</td><td>${rg.bills ? N(rg.bills) : '—'}</td><td>${rg.ret ? N(rg.ret) : '—'}</td><td class="note">needs data</td><td class="note">needs data</td><td class="note">needs data</td><td class="note">needs data</td></tr>`; }).join('')}</tbody></table></div>`, '')}
+        ${regOnly.length ? card('Branches in the bill register only', tbl(['Branch', 'OP pharmacy bills', 'Net sales'], regOnly.map(n => { const g2 = regSummary(by[n]); return [n, N(g2.bills), RS(g2.net)]; })), 'These branches have OP pharmacy bills but no separate pharmacy line in the management report. ' + reg() + '.') : ''}`;
+        host.__branches = brs; host.__by = by;
+      }
+      if (id === 'phgr') html = intro('GRN and vendors') + integ('GRN and vendor analysis', 'No GRN, purchase, vendor or purchase-return records exist in the management report or the bill register, so GRN counts, values, vendor performance and outstanding payables cannot be calculated. Nothing is estimated.',
+        [['Total GRNs generated', 'daily, monthly, yearly reports'], ['Total GRN value', 'purchase + GST'], ['Received quantity', 'by item and vendor'], ['Purchase returns', 'returns to vendor'], ['Pending / cancelled / completed GRNs', 'GRN status'], ['Vendors and last purchase date', 'vendor history']],
+        [['GRN number, GRN date, status', 'GRN register and status counts'], ['Branch / store', 'store-wise and branch-wise GRN'], ['Vendor name and vendor ID', 'vendor performance and history'], ['Invoice number and invoice date', 'GRN to invoice match'], ['Item code, item name, category', 'items supplied'], ['Received quantity, free quantity, unit', 'quantity received'], ['Purchase rate, taxable amount, GST amount, total value', 'purchase amount, GST, GRN value'], ['Purchase return number, date, quantity, value', 'purchase returns'], ['Vendor payment status / payable', 'outstanding amount (only if payments are held)']]);
+      if (id === 'phst') html = intro('Stock management') + integ('Stock management and movement', 'No stock ledger exists in the loaded sources. Opening, closing, low-stock, expiry and transfer figures are therefore not shown. They will be calculated with the formula below once the stock ledger is connected.',
+        [['Opening stock', 'start of period'], ['Stock received (GRN)', 'purchases'], ['Sales / dispensed quantity', 'from bill lines'], ['Department consumption', 'internal issues'], ['Sales returns / purchase returns', 'returns in and out'], ['Stock transfers and adjustments', 'inter-store and corrections'], ['Closing stock', 'by item, category, store, branch'], ['Low, out-of-stock, expired and near-expiry items', 'stock alerts']],
+        [['Store, branch, item code, batch', 'item-wise and store-wise stock'], ['Opening quantity and value per period', 'opening stock'], ['Movement type (GRN, sale, issue, return in, return out, transfer in, transfer out, adjustment)', 'stock movement'], ['Quantity and rate per movement', 'quantity and stock value'], ['Batch expiry date', 'expired and near-expiry stock'], ['Reorder level / minimum stock', 'low-stock and out-of-stock items'], ['Item category', 'category-wise stock report']],
+        card('Stock reconciliation formula', `<p style="margin:0;font-size:14px;line-height:1.7"><b>Closing stock</b> = Opening stock + Stock received + Stock returns in − Sales / dispensing − Department consumption − Returns to vendor ± Adjustments and transfers.</p><p class="note" style="margin:10px 0 0">Each stock movement is counted once: a sale or a dispense is one outgoing movement (never both), and an inter-store transfer is shown as out of one store and into another, so it nets to zero for the branch group.</p>`));
+      if (id === 'phit') html = intro('Item performance') + integ('Top and bottom performing items', 'Pharmacy bills in the bill register carry only the bill amount, not the medicines sold, so item-wise sales cannot be built. Nothing is estimated.',
+        [['Top 10 selling medicines', 'quantity and value'], ['Lowest selling medicines', 'quantity and value'], ['Highest revenue items', 'sales value'], ['Fast-moving items', 'movement rate'], ['Slow-moving items', 'movement rate'], ['Low stock and near-expiry items', 'with branch']],
+        [['Bill line items: item code and name, quantity, rate, amount', 'items sold and item revenue'], ['Branch and store on each line', 'item sales by branch'], ['Current stock per item and store', 'stock against sales'], ['Batch expiry date', 'near-expiry items'], ['Item category', 'category-wise performance']]);
+      host.innerHTML = html;
+      host.querySelectorAll('[data-ph]').forEach(s2 => { s2.onchange = () => { PH[s2.dataset.ph] = s2.value; draw(id); }; });
+      host.querySelectorAll('[data-phr]').forEach(b => { b.onclick = () => { PH.range = b.dataset.phr; if (PH.range === 'custom' && !PH.from) { PH.to = asOf; PH.from = addDays(asOf, -6); } draw(id); }; });
+      host.querySelectorAll('[data-phl]').forEach(b => { b.onclick = () => { PH.level = b.dataset.phl; draw(id); }; });
+      host.querySelectorAll('[data-phm]').forEach(b => { b.onclick = () => { PH.month = b.dataset.phm; PH.level = 'day'; draw(id); }; });
+      host.querySelectorAll('[data-phb]').forEach(r => { r.onclick = () => branchDrawer(r.dataset.phb, host, ss); });
+      host.querySelectorAll('[data-phgo]').forEach(c => { c.onclick = () => kpiDrawer(c.dataset.phgo, P, ss, k); });
+      const cv = host.querySelector('#phcsv'); if (cv) cv.onclick = () => { const b = document.getElementById('hcsv'); if (b) b.click(); };
+      tips(host);
+    } catch (e) { console.error(e); host.innerHTML = '<div class="card"><h2>This view could not be drawn</h2></div>'; }
+  }
+  const intro = t => `<div class="controls"><b style="font-size:14px">${t}</b><span style="margin-left:auto;display:flex;gap:8px"><button type="button" class="btn ghost sm" onclick="window.print()">Print / PDF</button></span></div>`;
+  function recon(ss) {
+    const sp = regSpan(); if (!sp) return ''; const rows = [], inM = (m) => regRows().filter(r => r.bdate.slice(0, 7) === m);
+    const months = [...new Set(regRows().map(r => r.bdate.slice(0, 7)))].sort(), last = ss[ss.length - 1];
+    months.forEach(m => { const rg = sum(inM(m), 'net'), cover = [...new Set(inM(m).map(r => r.bdate))].sort(), a = cover[0], b = cover[cover.length - 1];
+      const dl2 = daily(ss.filter(s => s.asOf >= a && s.asOf <= b)); let mg = dl2.reduce((x, y) => x + (y.opk || 0), 0), note = 'sum of daily management figures';
+      if (m === addDays(last.asOf.slice(0, 8) + '01', -1).slice(0, 7) && a === m + '-01') { mg = (last.data.kpi.opPharm || {}).pmt; note = 'management report month total'; }
+      rows.push([m + ' (' + dl(a) + ' to ' + dl(b) + ')', RS(rg), RS(mg), N(rg - mg), pnt(pc(rg, mg)), note]); });
+    return card('Reconciliation: bill register against the management report (OP pharmacy)', tbl(['Period', 'Bill register net', 'Management report', 'Difference', 'Difference %', 'Management figure'], rows), 'Both come from the Presco billing data and should agree. Small differences are bills posted on a different day. Stock and GRN cannot be reconciled because they are not loaded.');
+  }
+  function readiness() {
+    const R = (a, b, c, s) => [a, b, `<span class="pf-v ${s === 'Available' ? 'ok' : s === 'Derived' ? 'ok2' : 'wl'}">${s}</span>`, c];
+    return card('Data readiness', tbl(['Metric', 'Source', 'Status', 'Detail'], [R('Total pharmacy sales', 'Management report, pharmacy store lines', 'by store, branch and day', 'Available'), R('Number of bills, average bill value', 'Bill register, OP pharmacy bills', 'OP pharmacy only, ' + reg(), 'Available'), R('Sales returns, refunds, net sales', 'Bill register', 'OP pharmacy returns and refunds', 'Available'), R('Gross margin', 'Management report', 'reported for OP pharmacy; IP margin is reported as 0', 'Available'), R('Cost of goods (estimate)', 'Sales and reported margin', 'would be an estimate, so it is not shown', 'Derived'), R('Items sold, item-wise sales', 'Bill line items', 'bills hold amounts only', 'Missing'), R('Current stock, stock value, closing stock', 'Stock ledger', 'not loaded', 'Missing'), R('GRN, vendors, purchase returns', 'GRN and vendor records', 'not loaded', 'Missing'), R('Expiry, low stock, transfers, adjustments', 'Stock ledger, batches', 'not loaded', 'Missing'), R('Payment type', 'Payment mode on bills', 'receipts carry no mode', 'Missing')]));
+  }
+  function kpiDrawer(kind, P, ss, k) {
+    const sp = regSpan(); let h = '';
+    if (kind === 'sales') h = `<h2 style="margin:0 0 4px">Pharmacy sales by store</h2><p class="note">${P.label}${PH.branch ? ' · ' + q(PH.branch) : ''}</p>` + tbl(['Store', 'Today', 'This month', 'Year to date'], P.rows.slice().sort((a, b) => b.ytd - a.ytd).map(r => [r.name, N(r.today), N(r.mtd), N(r.ytd)]));
+    if (kind === 'margin') h = `<h2 style="margin:0 0 4px">OP pharmacy gross margin</h2><p class="note">Reported by the management report each day.</p>` + tbl(['Date', 'Margin %', 'OP pharmacy sales'], daily(ss).slice().reverse().slice(0, 30).map(x => [dlf(x.d), (x.margin || 0).toFixed(1) + '%', N(x.opk)]));
+    if (kind === 'bills' || kind === 'returns') { const from = sp ? (P.from < sp[0] ? sp[0] : P.from) : '', to = sp ? (P.to > sp[1] ? sp[1] : P.to) : '', rr = sp ? regFilter(from, to).filter(r => kind === 'bills' ? regKind(r) === 'Bill' : regKind(r) !== 'Bill') : [];
+      h = `<h2 style="margin:0 0 4px">${kind === 'bills' ? 'OP pharmacy bills' : 'OP pharmacy returns and refunds'}</h2><p class="note">${N(rr.length)} records${rr.length > 200 ? ', latest 200 shown' : ''} · ${reg()}</p>` + tbl(['Date', 'Bill', 'UHID', 'Branch', 'Type', 'Amount'], rr.sort((a, b) => a.bdate < b.bdate ? 1 : -1).slice(0, 200).map(r => [r.bdate, q(r.bill), q(r.umr), tc(r.loc), regKind(r), N(r.net)])); }
+    drawer(h);
+  }
+  function branchDrawer(name, host, ss) {
+    const b = (host.__branches || {})[name], by = host.__by || {}, rr = (by[name] || by[name.toUpperCase()] || []).filter(r => regKind(r) === 'Bill').sort((a, b2) => a.bdate < b2.bdate ? 1 : -1);
+    if (!b) return; const dly = daily(ss).length;
+    drawer(`<h2 style="margin:0 0 4px">${q(name)} pharmacy</h2><p class="note">As on ${ss[ss.length - 1].asOf}</p>` + tbl(['Store', 'Today', 'This month', 'Last month', 'Year to date', 'vs last year'], b.st.map(r => [r.name, N(r.today), N(r.mtd), N(r.pmt), N(r.ytd), pnt(pc(r.ytd, r.lyytd))]))
+      + (rr.length ? `<h3 style="margin:18px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#64748B">Latest OP pharmacy bills</h3>` + tbl(['Date', 'Bill', 'UHID', 'Amount'], rr.slice(0, 40).map(r => [r.bdate, q(r.bill), q(r.umr), N(r.net)])) : ''));
+  }
+  const renderAll = () => Object.keys(ROOT).forEach(draw);
+  const prev = window.__PRESCO_ENHANCER_READY;
+  window.__PRESCO_ENHANCER_READY = payload => { if (typeof prev === 'function') prev(payload); RT = payload || RT; renderAll(); };
+  document.addEventListener('click', e => { const b = e.target.closest('button[role="tab"]'); if (b && TABS[b.id] && RT.store) setTimeout(() => draw(TABS[b.id]), 0); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { const d = document.getElementById('phDrawer'); if (d) d.innerHTML = ''; } });
 })();

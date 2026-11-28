@@ -937,6 +937,282 @@
   window.__PRESCO_RENDER_MANAGEMENT = render;
 })();
 
+/* =====================================================================
+   EQUIPMENT & MACHINERY ROI ? isolated demonstration dataset.
+   This dataset is intentionally not connected to billing or live records.
+   ===================================================================== */
+(function () {
+  'use strict';
+  const hostId = 'eqroiDashboard';
+  const months = [
+    { month: 'January', procedures: 180, revenue: 1400000, expenses: 300000 },
+    { month: 'February', procedures: 190, revenue: 1500000, expenses: 300000 },
+    { month: 'March', procedures: 200, revenue: 1600000, expenses: 300000 },
+    { month: 'April', procedures: 210, revenue: 1700000, expenses: 300000 },
+    { month: 'May', procedures: 220, revenue: 1800000, expenses: 300000 },
+    { month: 'June', procedures: 225, revenue: 1800000, expenses: 300000 },
+    { month: 'July', procedures: 230, revenue: 1900000, expenses: 300000 },
+    { month: 'August', procedures: 240, revenue: 2000000, expenses: 300000 },
+    { month: 'September', procedures: 245, revenue: 2000000, expenses: 300000 },
+    { month: 'October', procedures: 250, revenue: 2100000, expenses: 300000 },
+    { month: 'November', procedures: 255, revenue: 2100000, expenses: 300000 },
+    { month: 'December', procedures: 265, revenue: 2100000, expenses: 300000 }
+  ];
+  const equipment = [
+    { id: 'EQ-DEMO-001', serial: 'SN-DEMO-MRI-24001', purchaseDate: '2023-01-15', name: 'MRI Machine', category: 'Imaging', branch: 'Nellore', department: 'Radiology', purchase: 20000000, installation: 1000000, procedures: 2710, revenue: 22000000, expenses: 3600000 },
+    { id: 'EQ-DEMO-002', serial: 'SN-DEMO-CT-24002', purchaseDate: '2023-02-20', name: 'CT Scan Machine', category: 'Imaging', branch: 'RTC', department: 'Radiology', purchase: 9000000, installation: 500000, procedures: 1850, revenue: 8500000, expenses: 2000000 },
+    { id: 'EQ-DEMO-003', serial: 'SN-DEMO-XR-24003', purchaseDate: '2023-03-10', name: 'Digital X-Ray', category: 'Imaging', branch: 'Lakdikapul', department: 'Radiology', purchase: 2500000, installation: 200000, procedures: 4000, revenue: 4000000, expenses: 800000 },
+    { id: 'EQ-DEMO-004', serial: 'SN-DEMO-US-24004', purchaseDate: '2023-04-05', name: 'Ultrasound Machine', category: 'Imaging', branch: 'Nellore', department: 'Radiology', purchase: 1800000, installation: 100000, procedures: 2400, revenue: 3200000, expenses: 700000 },
+    { id: 'EQ-DEMO-005', serial: 'SN-DEMO-CA-24005', purchaseDate: '2023-05-18', name: 'C-Arm Machine', category: 'OT Equipment', branch: 'RTC', department: 'Orthopaedics', purchase: 3500000, installation: 200000, procedures: 900, revenue: 2500000, expenses: 800000 },
+    { id: 'EQ-DEMO-006', serial: 'SN-DEMO-VT-24006', purchaseDate: '2023-06-22', name: 'Ventilator', category: 'Critical Care', branch: 'Lakdikapul', department: 'ICU', purchase: 1200000, installation: 50000, procedures: 1200, revenue: 1800000, expenses: 600000 },
+    { id: 'EQ-DEMO-007', serial: 'SN-DEMO-AM-24007', purchaseDate: '2023-07-12', name: 'Anesthesia Machine', category: 'OT Equipment', branch: 'Nellore', department: 'Operation Theatre', purchase: 1500000, installation: 100000, procedures: 1500, revenue: 2200000, expenses: 700000 },
+    { id: 'EQ-DEMO-008', serial: 'SN-DEMO-ECG-24008', purchaseDate: '2023-08-08', name: 'ECG Machine', category: 'Diagnostic', branch: 'RTC', department: 'Cardiology', purchase: 250000, installation: 25000, procedures: 3000, revenue: 800000, expenses: 200000 },
+    { id: 'EQ-DEMO-009', serial: 'SN-DEMO-ECHO-24009', purchaseDate: '2023-09-14', name: 'Echo Machine', category: 'Diagnostic', branch: 'Lakdikapul', department: 'Cardiology', purchase: 3000000, installation: 200000, procedures: 1800, revenue: 3800000, expenses: 900000 },
+    { id: 'EQ-DEMO-010', serial: 'SN-DEMO-OT-24010', purchaseDate: '2023-10-25', name: 'OT Equipment', category: 'OT Equipment', branch: 'Nellore', department: 'Operation Theatre', purchase: 4000000, installation: 300000, procedures: 700, revenue: 3000000, expenses: 1200000 }
+  ].map(item => {
+    const investment = item.purchase + item.installation;
+    const netReturn = item.revenue - item.expenses;
+    return Object.assign({}, item, {
+      investment,
+      netReturn,
+      recovery: netReturn / investment * 100,
+      remaining: Math.max(investment - netReturn, 0),
+      recovered: Math.min(Math.max(netReturn, 0), investment),
+      excess: Math.max(netReturn - investment, 0),
+      payback: netReturn > 0 ? investment / (netReturn / 12) : null
+    });
+  });
+  const state = { branch: '', department: '', category: '', equipment: '', period: '12-month', detail: '' };
+  const money = value => '₹' + Math.round(value).toLocaleString('en-IN');
+  const integer = value => Math.round(value).toLocaleString('en-IN');
+  const percent = value => value.toFixed(2) + '%';
+  const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[ch]);
+  const table = (headers, rows, emptyMessage) => `<div class="lgscroll"><table class="btx"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.length ? rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${headers.length}" class="note" style="text-align:center;padding:18px">${emptyMessage}</td></tr>`}</tbody></table></div>`;
+  const card = (title, body, note) => `<div class="card"><h2>${title}</h2>${body}${note ? `<p class="note" style="margin-top:8px">${note}</p>` : ''}</div>`;
+  const select = (key, label, values) => `<div class="field"><label for="eqroi-${key}">${label}</label><select id="eqroi-${key}" data-eq-filter="${key}"><option value="">All</option>${values.map(value => `<option value="${esc(value)}"${state[key] === value ? ' selected' : ''}>${esc(value)}</option>`).join('')}</select></div>`;
+  const aggregate = rows => rows.reduce((sum, item) => {
+    sum.investment += item.investment;
+    sum.revenue += item.revenue;
+    sum.expenses += item.expenses;
+    sum.netReturn += item.netReturn;
+    sum.recovered += item.recovered;
+    sum.remaining += item.remaining;
+    sum.procedures += item.procedures;
+    return sum;
+  }, { investment: 0, revenue: 0, expenses: 0, netReturn: 0, recovered: 0, remaining: 0, procedures: 0 });
+  const filteredEquipment = () => equipment.filter(item =>
+    (!state.branch || item.branch === state.branch) &&
+    (!state.department || item.department === state.department) &&
+    (!state.category || item.category === state.category) &&
+    (!state.equipment || item.name === state.equipment) &&
+    (state.period !== 'mri-monthly' || item.name === 'MRI Machine')
+  );
+  const barChart = (items, field, formatter, color, label) => {
+    if (!items.length) return '<p class="note eqroi-empty">No equipment matches the selected filters.</p>';
+    const width = 720, left = 150, right = 95, barWidth = width - left - right;
+    const rowHeight = 32, height = Math.max(100, items.length * rowHeight + 20);
+    const maximum = Math.max(1, ...items.map(item => Math.max(0, item[field])));
+    const bars = items.map((item, index) => {
+      const y = index * rowHeight + 10;
+      const bar = Math.max(1, Math.max(0, item[field]) / maximum * barWidth);
+      return `<text x="${left - 10}" y="${y + 14}" text-anchor="end" class="eqroi-axis">${esc(item.name)}</text><rect x="${left}" y="${y}" width="${bar}" height="19" rx="4" fill="${color}"><title>${esc(item.name)}: ${esc(formatter(item[field]))}</title></rect><text x="${left + bar + 7}" y="${y + 14}" class="eqroi-value">${esc(formatter(item[field]))}</text>`;
+    }).join('');
+    return `<svg class="eqroi-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(label)}">${bars}</svg>`;
+  };
+  const comparisonChart = items => {
+    if (!items.length) return '<p class="note eqroi-empty">No equipment matches the selected filters.</p>';
+    const width = 720, left = 150, right = 95, barWidth = width - left - right;
+    const rowHeight = 45, height = Math.max(110, items.length * rowHeight + 18);
+    const maximum = Math.max(1, ...items.map(item => Math.max(item.investment, item.revenue)));
+    const bars = items.map((item, index) => {
+      const y = index * rowHeight + 8;
+      const invWidth = Math.max(1, item.investment / maximum * barWidth);
+      const revWidth = Math.max(1, item.revenue / maximum * barWidth);
+      return `<text x="${left - 10}" y="${y + 22}" text-anchor="end" class="eqroi-axis">${esc(item.name)}</text><rect x="${left}" y="${y}" width="${invWidth}" height="15" rx="3" fill="#14B8A6"><title>Investment: ${money(item.investment)}</title></rect><rect x="${left}" y="${y + 19}" width="${revWidth}" height="15" rx="3" fill="#4F46E5"><title>Revenue: ${money(item.revenue)}</title></rect><text x="${left + invWidth + 6}" y="${y + 12}" class="eqroi-value">${money(item.investment)}</text><text x="${left + revWidth + 6}" y="${y + 31}" class="eqroi-value">${money(item.revenue)}</text>`;
+    }).join('');
+    return `<svg class="eqroi-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Equipment investment compared with revenue">${bars}</svg><div class="eqroi-legend"><span><i style="background:#14B8A6"></i>Investment</span><span><i style="background:#4F46E5"></i>Revenue</span></div>`;
+  };
+  const monthlyChart = rows => {
+    const mri = rows.find(item => item.name === 'MRI Machine');
+    if (!mri) return '<p class="note eqroi-empty">MRI monthly history is not included by the current equipment filters.</p>';
+    const width = 720, height = 250, left = 46, right = 18, top = 18, bottom = 52;
+    const max = Math.max(...months.map(item => item.revenue));
+    const points = months.map((item, index) => {
+      const x = left + index * (width - left - right) / (months.length - 1);
+      const y = top + (max - item.revenue) / max * (height - top - bottom);
+      return { x, y, item };
+    });
+    const line = points.map(point => `${point.x},${point.y}`).join(' ');
+    const dots = points.map(point => `<circle cx="${point.x}" cy="${point.y}" r="4" fill="#14B8A6"><title>${point.item.month}: ${money(point.item.revenue)}</title></circle><text x="${point.x}" y="${height - 24}" text-anchor="middle" class="eqroi-axis">${point.item.month.slice(0, 3)}</text>`).join('');
+    return `<svg class="eqroi-chart eqroi-line-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Monthly MRI revenue trend"><line x1="${left}" x2="${width - right}" y1="${height - bottom}" y2="${height - bottom}" stroke="#CBD5E1"/><polyline points="${line}" fill="none" stroke="#14B8A6" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${dots}</svg>`;
+  };
+  const detailMarkup = item => {
+    if (!item) return '';
+    const isMri = item.name === 'MRI Machine';
+    const history = isMri ? table(['Month','Procedures','Revenue','Operating & maintenance expenses','Net operating return'], months.map(month => [
+      month.month, integer(month.procedures), money(month.revenue), money(month.expenses), money(month.revenue - month.expenses)
+    ])) : `<p class="note">Only cumulative 12-month financials are supplied for this equipment. No monthly history is generated.</p>`;
+    return `<div class="card eqroi-detail" id="eqroi-detail">
+      <div class="eqroi-detail-head"><h2>${esc(item.name)} — Demo Equipment Details</h2><button type="button" class="btn ghost sm" data-eq-close>Close details</button></div>
+      <p class="eqroi-detail-sub">${esc(item.category)} · ${esc(item.branch)} · ${esc(item.department)} · Generated demo identifiers and purchase date</p>
+      ${table(['Equipment ID','Serial number','Demo purchase date','Purchase price','Installation cost','Total initial investment'], [[esc(item.id), esc(item.serial), item.purchaseDate + ' (demo)', money(item.purchase), money(item.installation), money(item.investment)]])}
+      <div class="mkkpis eqroi-detail-kpis">
+        <div class="mkk"><span>12-month procedure count</span><b>${integer(item.procedures)}</b></div>
+        <div class="mkk"><span>Revenue generated</span><b>${money(item.revenue)}</b></div>
+        <div class="mkk"><span>Operating &amp; maintenance expenses</span><b>${money(item.expenses)}</b></div>
+        <div class="mkk"><span>Net operating return</span><b>${money(item.netReturn)}</b></div>
+        <div class="mkk"><span>Investment recovery</span><b>${percent(item.recovery)}</b></div>
+        <div class="mkk"><span>Remaining investment</span><b>${money(item.remaining)}</b></div>
+        <div class="mkk"><span>Estimated payback</span><b>${item.payback == null ? 'Payback Not Available' : item.payback.toFixed(2) + ' months'}</b></div>
+        <div class="mkk"><span>Excess return over investment</span><b>${money(item.excess)}</b></div>
+      </div>
+      <p class="note">Maintenance is included in the combined operating &amp; maintenance expense figure; a separate maintenance-only breakdown was not supplied. ${item.netReturn >= item.investment ? `Investment Recovered; excess return is ${money(item.excess)}.` : ''}</p>
+      ${card(isMri ? 'Monthly MRI revenue history' : 'Revenue history', history, isMri ? 'Monthly history reconciles to 2,710 procedures, ₹22,000,000 revenue, and ₹3,600,000 combined expenses.' : 'Only the cumulative sample reporting period is provided for this machine.')}
+    </div>`;
+  };
+  const render = () => {
+    const host = document.getElementById(hostId);
+    if (!host) return;
+    const rows = filteredEquipment();
+    const totals = aggregate(rows);
+    const recoveredCount = rows.filter(item => item.netReturn >= item.investment).length;
+    const branches = ['Nellore', 'RTC', 'Lakdikapul'].map(branch => ({
+      name: branch, investment: rows.filter(item => item.branch === branch).reduce((sum, item) => sum + item.investment, 0)
+    })).filter(item => item.investment > 0);
+    const selected = equipment.find(item => item.id === state.detail);
+    const roiRows = rows.map(item => [
+      `<button type="button" class="eqroi-link" data-eq-detail="${esc(item.id)}">${esc(item.name)}</button>`,
+      money(item.investment), money(item.revenue), money(item.expenses), money(item.netReturn), percent(item.recovery),
+      money(item.remaining), item.netReturn >= item.investment ? `Investment Recovered${item.excess > 0 ? ` · excess ${money(item.excess)}` : ''}` : 'Not fully recovered',
+      item.payback == null ? 'Payback Not Available' : item.payback.toFixed(2) + ' months',
+      integer(item.procedures)
+    ]);
+    const registerRows = rows.map(item => [
+      `<button type="button" class="eqroi-link" data-eq-detail="${esc(item.id)}">${esc(item.name)}</button>`,
+      esc(item.category), esc(item.branch), esc(item.department), esc(item.id), esc(item.serial),
+      item.purchaseDate + ' (demo)', money(item.purchase), money(item.installation), money(item.investment)
+    ]);
+    host.innerHTML = `
+      <div class="controls">
+        <b style="font-size:14px">Equipment &amp; Machinery ROI</b>
+        <span style="margin-left:auto;display:flex;gap:8px">
+          <button type="button" class="btn ghost sm" id="eqroiExport">Export CSV</button>
+          <button type="button" class="btn ghost sm" data-eq-reset>Reset filters</button>
+          <button type="button" class="btn ghost sm" onclick="window.print()">Print / PDF</button>
+        </span>
+      </div>
+      <div class="eqroi-demo-banner" role="note">DEMO DATA – NOT ACTUAL HOSPITAL DATA</div>
+      <div class="card eqroi-reconcile">
+        <p><b>Isolated sample dataset:</b> these equipment figures are demo information only and do not enter live billing, hospital asset records, or financial transactions.</p>
+        <p><b>MRI revenue reconciliation:</b> monthly values total ${money(months.reduce((sum, item) => sum + item.revenue, 0))}; per your selection, the MRI cumulative revenue is reconciled to the monthly history rather than the conflicting supplied ₹18,000,000. No monthly histories are generated for other machines.</p>
+      </div>
+      <div class="controls" style="margin-top:12px">
+        <div class="field"><label for="eqroi-period">Reporting period</label><select id="eqroi-period" data-eq-filter="period"><option value="12-month"${state.period === '12-month' ? ' selected' : ''}>Cumulative 12-month sample</option><option value="mri-monthly"${state.period === 'mri-monthly' ? ' selected' : ''}>MRI monthly history</option></select></div>
+        ${select('branch', 'Branch', ['Nellore', 'RTC', 'Lakdikapul'])}
+        ${select('department', 'Department', ['Radiology', 'Orthopaedics', 'ICU', 'Operation Theatre', 'Cardiology'])}
+        ${select('category', 'Equipment category', ['Imaging', 'OT Equipment', 'Critical Care', 'Diagnostic'])}
+        ${select('equipment', 'Equipment name', equipment.map(item => item.name))}
+      </div>
+      <div class="mkkpis" style="margin-top:12px">
+        ${[
+          ['Total Equipment Count', integer(rows.length), 'Filtered equipment items'],
+          ['Total Equipment Investment', money(totals.investment), 'Purchase plus installation'],
+          ['Total Revenue Generated', money(totals.revenue), 'Selected demo reporting period'],
+          ['Total Operating & Maintenance Expenses', money(totals.expenses), 'Combined cumulative expenses'],
+          ['Total Net Operating Return', money(totals.netReturn), 'Revenue less combined expenses'],
+          ['Total Investment Recovered', money(totals.recovered), 'Capped at each item’s investment'],
+          ['Remaining Investment', money(totals.remaining), 'Never below zero'],
+          ['Equipment with Investment Fully Recovered', integer(recoveredCount), 'Items at or above 100% recovery']
+        ].map(metric => `<div class="mkk"><span>${metric[0]}</span><b>${metric[1]}</b><small>${metric[2]}</small></div>`).join('')}
+      </div>
+      <div class="grid2 eqroi-charts" style="margin-top:12px">
+        ${card('Equipment Investment vs Revenue', `${comparisonChart(rows)}`)}
+        ${card('Equipment-Wise Net Operating Return', barChart(rows, 'netReturn', money, '#14B8A6', 'Net operating return by equipment'))}
+        ${card('Equipment-Wise Investment Recovery Percentage', barChart(rows, 'recovery', percent, '#4F46E5', 'Investment recovery percentage by equipment'))}
+        ${card('Branch-Wise Equipment Investment', barChart(branches, 'investment', money, '#0F766E', 'Equipment investment by branch'))}
+        ${card('Equipment-Wise Operating Expenses', barChart(rows, 'expenses', money, '#F59E0B', 'Operating and maintenance expenses by equipment'))}
+        ${card('Monthly MRI Revenue Trend', monthlyChart(rows), 'Sample monthly revenue, January–December; generated only for MRI Machine.')}
+        ${card('Equipment-Wise Payback Period', barChart(rows.filter(item => item.payback != null), 'payback', value => value.toFixed(2) + ' months', '#0EA5E9', 'Estimated payback period in months'))}
+      </div>
+      ${card('Equipment-wise investment and ROI', table(
+        ['Equipment','Total investment','Revenue','Operating & maintenance expenses','Net operating return','Recovery %','Remaining investment','Recovery status / excess return','Estimated payback','Procedures'],
+        roiRows,
+        'No equipment matches the selected filters.'
+      ), 'Recovery is net operating return ÷ investment. Investment recovered is capped at the initial investment; excess return is shown separately. Payback = investment ÷ average monthly net return, using the 12-month sample.')}
+      ${card('Equipment investment register', table(
+        ['Equipment','Category','Branch','Department','Demo equipment ID','Demo serial number','Demo purchase date','Purchase price','Installation cost','Total initial investment'],
+        registerRows,
+        'No equipment matches the selected filters.'
+      ))}
+      ${selected && rows.some(item => item.id === selected.id) ? detailMarkup(selected) : ''}`;
+  };
+  const csvEscape = value => '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"';
+  const downloadCsv = rows => {
+    const header = ['Equipment', 'Category', 'Branch', 'Department', 'Equipment ID (demo)', 'Serial number (demo)', 'Purchase date (demo)', 'Purchase price', 'Installation cost', 'Total investment', 'Procedures', 'Revenue', 'Operating & maintenance expenses', 'Net operating return', 'Recovery %', 'Remaining investment', 'Excess return', 'Payback months'];
+    const csvRows = rows.map(item => [
+      item.name, item.category, item.branch, item.department, item.id, item.serial, item.purchaseDate,
+      item.purchase, item.installation, item.investment, item.procedures, item.revenue, item.expenses,
+      item.netReturn, item.recovery.toFixed(2), item.remaining, item.excess, item.payback == null ? 'Payback Not Available' : item.payback.toFixed(2)
+    ]);
+    const csv = [header, ...csvRows].map(row => row.map(csvEscape).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob(['\ufeff' + csvEscape('DEMO DATA – NOT ACTUAL HOSPITAL DATA') + '\r\n' + csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'equipment-machinery-roi-demo.csv';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  const host = document.getElementById(hostId);
+  if (host) {
+    host.addEventListener('change', event => {
+      const filter = event.target.closest('[data-eq-filter]');
+      if (!filter) return;
+      state[filter.dataset.eqFilter] = filter.value;
+      if (filter.dataset.eqFilter === 'equipment') state.detail = '';
+      render();
+    });
+    host.addEventListener('click', event => {
+      const detailButton = event.target.closest('[data-eq-detail]');
+      if (detailButton) {
+        state.detail = detailButton.dataset.eqDetail;
+        render();
+        return;
+      }
+      if (event.target.closest('[data-eq-close]')) {
+        state.detail = '';
+        render();
+        return;
+      }
+      if (event.target.closest('[data-eq-reset]')) {
+        state.branch = '';
+        state.department = '';
+        state.category = '';
+        state.equipment = '';
+        state.period = '12-month';
+        state.detail = '';
+        render();
+        return;
+      }
+      if (event.target.closest('#eqroiExport')) downloadCsv(filteredEquipment());
+    });
+    host.addEventListener('keydown', event => {
+      const row = event.target.closest('tr[data-eq-detail]');
+      if (row && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        state.detail = row.dataset.eqDetail;
+        render();
+      }
+    });
+  }
+  render();
+  document.addEventListener('click', event => {
+    const target = event.target;
+    const tab = target && target.closest ? target.closest('button[role="tab"]') : null;
+    if (tab && tab.id === 't-eqroi') setTimeout(render, 0);
+  });
+})();
 
 /* =====================================================================
    MARKETING MANAGEMENT DASHBOARD
@@ -1533,8 +1809,7 @@ function drawMk(pn){
    Real data used: pharmacy store revenue lines of the management dashboard report (OP, IP, OT and central
    pharmacy of every branch: today, yesterday, month, previous months, year, last year, daily history),
    the reported OP pharmacy margin, and the OP pharmacy bills, returns and refunds of the bill register.
-   Not in any loaded source (so shown as "Data integration required", never estimated):
-   stock on hand, stock value, GRN, vendors, items, batches, expiry, transfers and adjustments.
+   GRN, vendor, stock, batch and item details below are isolated sample data for demonstration.
    ===================================================================== */
 (function () {
   'use strict';
@@ -1552,7 +1827,6 @@ function drawMk(pn){
   const dl = iso => new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
   const dlf = iso => new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   const kk = (l, v, n, tone, go) => `<div class="mkk"${go ? ` data-phgo="${go}" title="Open the detailed report"` : ''}><span>${l}</span><b${tone ? ` style="color:${tone}"` : ''}>${v}</b><small>${n || '&nbsp;'}</small></div>`;
-  const need = (l, w) => `<div class="mkk phneed"><span>${l}</span><b style="font-size:14px;color:#64748B">Data integration required</b><small>${w || '&nbsp;'}</small></div>`;
   const card = (t, body, note) => `<div class="card" style="margin-top:16px"><h2>${t}</h2>${note ? `<p class="note">${note}</p>` : ''}${body}</div>`;
   const tbl = (head, rows) => `<div style="overflow-x:auto"><table class="btx"><thead><tr>${head.map((h, i) => `<th${i === 0 ? ' class="l"' : ''}>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td${i === 0 ? ' class="l"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   const tips = host => { if (host.__pt) return; host.__pt = true; const el = () => document.getElementById('tip');
@@ -1603,21 +1877,402 @@ function drawMk(pn){
       if (i % st === 0) g += `<text x="${bx + bw * .36}" y="${H - PB + 16}" text-anchor="middle" font-size="10.5" fill="#64748B" font-family="Inter">${dl(x.d)}</text>`; });
     return `<svg viewBox="0 0 ${W} ${H}">${g}</svg><div class="legend">${Object.keys(COL).filter(c => dly.some(x => x.by[c])).map(c => `<span><i class="sw" style="background:${COL[c]}"></i>${c} pharmacy</span>`).join('')}</div>`; };
   const reg = () => { const sp = regSpan(); return sp ? `Bill register: ${sp[0]} to ${sp[1]}` : 'No bill register loaded'; };
-  const integ = (title, intro, kpis, fields, extra) => `<div class="card" style="border-style:dashed;margin-top:14px"><h2>${title}: data integration required</h2><p class="note">${intro}</p></div>
-    <div class="mkkpis" style="margin-top:12px">${kpis.map(k => need(k[0], k[1])).join('')}</div>
-    ${card('Fields needed from the pharmacy system', tbl(['Field', 'Used for', 'Status in the loaded reports'], fields.map(f => [f[0], f[1], '<span class="pf-v wl">Not in source</span>'])), 'Once these are connected the sections below fill automatically and totals can be reconciled with the pharmacy system.')}${extra || ''}`;
+  const DEMO_BRANCHES = ['Boduppal', 'ECIL', 'Kompally', 'Lakdikapul', 'LB Nagar', 'Main / unassigned', 'Miyapur', 'Rajahmundry', 'Vijayawada'];
+  const DEMO_STORES = ['Central Store', 'OP Pharmacy', 'IP Pharmacy'];
+  const DEMO_ITEMS = [
+    ['PARA500', 'Paracetamol 500 mg', 'Analgesic', 1.2], ['PANT40', 'Pantoprazole 40 mg', 'Gastro', 6.5],
+    ['AMOX500', 'Amoxicillin 500 mg', 'Antibiotic', 8], ['AZIT500', 'Azithromycin 500 mg', 'Antibiotic', 22],
+    ['CEFT1G', 'Ceftriaxone 1 g injection', 'Antibiotic', 48], ['METF500', 'Metformin 500 mg', 'Diabetic', 2.5],
+    ['GLIM2', 'Glimepiride 2 mg', 'Diabetic', 4], ['AMLO5', 'Amlodipine 5 mg', 'Cardiac', 3],
+    ['ATOR10', 'Atorvastatin 10 mg', 'Cardiac', 7], ['TELM40', 'Telmisartan 40 mg', 'Cardiac', 6],
+    ['CLOP75', 'Clopidogrel 75 mg', 'Cardiac', 9], ['OMEP20', 'Omeprazole 20 mg', 'Gastro', 4],
+    ['ONDA4', 'Ondansetron 4 mg', 'Gastro', 5], ['CETI10', 'Cetirizine 10 mg', 'Antihistamine', 1.5],
+    ['MONT10', 'Montelukast 10 mg', 'Respiratory', 11], ['NS500', 'Normal Saline 500 ml', 'IV Fluids', 38],
+    ['RL500', 'Ringer Lactate 500 ml', 'IV Fluids', 42], ['DEXA4', 'Dexamethasone 4 mg injection', 'Injection', 14],
+    ['HEPA5K', 'Heparin 5000 IU injection', 'Injection', 165], ['VITC500', 'Vitamin C 500 mg', 'Vitamins', 2]
+  ];
+  const DEMO_VENDORS = [
+    'Apex Medico Distributors', 'Carewell Pharma Supplies', 'City Medical Agencies', 'Cipla Healthcare Supplies',
+    'Deccan Surgical & Pharma', 'Emcure Pharmaceuticals', 'Gland Pharma Distributors', 'HealthFirst Agencies',
+    'Indian Medical Stores', 'Jupiter Pharma Traders', 'Kiran Medical Distributors', 'LifeLine Healthcare',
+    'MedPlus Institutional Supply', 'Nova Pharma Agencies', 'Orion Medical Traders', 'PrimeCare Distributors',
+    'Quality Medicos', 'Reddy Medico Traders', 'Sai Krishna Pharma', 'Sun Pharma Distributors',
+    'Torrent Medicare', 'Universal Drug House', 'Vijaya Medical Agencies', 'Wellness Pharma Supply',
+    'Yashoda Pharma Traders', 'Zenith Healthcare', 'Zydus Lifescience Agency', 'Apollo Pharma Wholesale'
+  ];
+  const DEMO_FILTER_DEFAULT = { range: 'year', from: '', to: '', q: '', vendor: '', item: '', category: '', branch: '', store: '' };
+  const DEMO_FILTERS = {
+    phgr: Object.assign({}, DEMO_FILTER_DEFAULT),
+    phst: Object.assign({}, DEMO_FILTER_DEFAULT),
+    phit: Object.assign({}, DEMO_FILTER_DEFAULT)
+  };
+  let DEMO_FILTER = DEMO_FILTERS.phgr;
+  const DEMO_TOTALS = {
+    grnCount: 248, approvedGrns: 186, pendingGrns: 32, rejectedGrns: 12,
+    cancelledGrns: 8, partialGrns: 10, activeVendors: 28,
+    grnValue: 4875600, receivedQuantity: 18450, grnReturns: 125000,
+    openingStock: 3250000, stockReceived: 875000, dispensed: 640000,
+    departmentConsumption: 85000, stockReturns: 45000, transfers: 125,
+    closingStock: 3355000, lowStock: 42, outOfStock: 12, expired: 8, nearExpiry: 35
+  };
+  const DEMO_STATUS_CLASS = { Approved: 'ok', Pending: 'wl', Rejected: 'rn', Cancelled: 'nv', 'Partially received': 'ok2' };
+  const DEMO_STATUS = status => `<span class="pf-v ${DEMO_STATUS_CLASS[status] || 'nv'}">${status}</span>`;
+  const DEMO_BADGE = '<span class="pf-v ok2" style="margin-left:8px">DEMO DATA</span>';
+  const RSD = value => '₹' + N(value);
+  let PH_DEMO = null;
+  const demoAsOf = () => {
+    const loaded = snaps();
+    return loaded.length ? loaded[loaded.length - 1].asOf : new Date().toISOString().slice(0, 10);
+  };
+  const apportion = (weights, total) => {
+    const weightTotal = weights.reduce((sum, value) => sum + value, 0);
+    const values = weights.map(value => Math.floor(value * total / weightTotal));
+    values[values.length - 1] += total - values.reduce((sum, value) => sum + value, 0);
+    return values;
+  };
+  function pharmacyDemoData() {
+    if (PH_DEMO) return PH_DEMO;
+    const asOf = demoAsOf();
+    const amounts = apportion(Array.from({ length: DEMO_TOTALS.grnCount }, (_, i) => 18000 + (i * 791 % 27000)), DEMO_TOTALS.grnValue);
+    const receivedCount = DEMO_TOTALS.approvedGrns + DEMO_TOTALS.partialGrns;
+    const received = apportion(Array.from({ length: receivedCount }, (_, i) => 40 + (i * 37 % 130)), DEMO_TOTALS.receivedQuantity);
+    const grns = Array.from({ length: DEMO_TOTALS.grnCount }, (_, i) => {
+      const approvedEnd = DEMO_TOTALS.approvedGrns;
+      const pendingEnd = approvedEnd + DEMO_TOTALS.pendingGrns;
+      const rejectedEnd = pendingEnd + DEMO_TOTALS.rejectedGrns;
+      const cancelledEnd = rejectedEnd + DEMO_TOTALS.cancelledGrns;
+      const status = i < approvedEnd ? 'Approved' : i < pendingEnd ? 'Pending' : i < rejectedEnd ? 'Rejected' : i < cancelledEnd ? 'Cancelled' : 'Partially received';
+      const quantity = i < approvedEnd ? received[i] : i >= cancelledEnd ? received[i - DEMO_TOTALS.cancelledGrns - DEMO_TOTALS.rejectedGrns - DEMO_TOTALS.pendingGrns] : 0;
+      return {
+        no: 'GRN-' + asOf.slice(2, 4) + '-' + String(i + 1).padStart(4, '0'),
+        date: addDays(asOf, -(i % 365)),
+        vendor: DEMO_VENDORS[i % DEMO_VENDORS.length],
+        invoice: 'INV-' + String(48000 + i),
+        branch: DEMO_BRANCHES[(i * 3) % DEMO_BRANCHES.length],
+        store: DEMO_STORES[i % DEMO_STORES.length],
+        items: 3 + i % 18,
+        amount: amounts[i],
+        qty: quantity,
+        status
+      };
+    });
+    const vendors = DEMO_VENDORS.map(name => {
+      const rows = grns.filter(row => row.vendor === name);
+      const purchase = rows.reduce((total, row) => total + row.amount, 0);
+      const outstanding = Math.round(purchase * (0.04 + (name.length % 6) * 0.025));
+      return {
+        name, purchase, paid: purchase - outstanding, outstanding,
+        last: rows.reduce((latest, row) => row.date > latest ? row.date : latest, ''),
+        grns: rows.length
+      };
+    });
+    const quantities = [2860, 2470, 2210, 1980, 1770, 1590, 1420, 1260, 1110, 980, 840, 710, 590, 470, 380, 290, 210, 145, 85, 32];
+    const receivedQuantities = apportion(DEMO_ITEMS.map((_, i) => 500 + (i * 97 % 1000)), DEMO_TOTALS.receivedQuantity);
+    const stockItems = DEMO_ITEMS.map((item, i) => {
+      const opening = 4200 + (i * 673 % 3000), inbound = receivedQuantities[i];
+      const issued = quantities[i], closing = opening + inbound - issued;
+      return {
+        code: item[0], name: item[1], category: item[2], unitRate: item[3] * (1.3 + i % 4 * 0.25),
+        branch: DEMO_BRANCHES[(i * 3) % DEMO_BRANCHES.length],
+        store: DEMO_STORES[i % DEMO_STORES.length], batch: 'B260' + String(100 + i),
+        opening, received: inbound, issued, closing,
+        date: addDays(asOf, -(i % 30)), expiry: addDays(asOf, 18 + i * 19)
+      };
+    });
+    const stockValues = apportion(stockItems.map(row => row.closing * row.unitRate), DEMO_TOTALS.closingStock);
+    stockItems.forEach((row, i) => { row.stockValue = stockValues[i]; row.unitRate = row.stockValue / row.closing; });
+    [
+      ['openingValue', 'opening', 'openingStock'],
+      ['receivedValue', 'received', 'stockReceived'],
+      ['issuedValue', 'issued', 'dispensed'],
+      ['consumptionValue', 'issued', 'departmentConsumption'],
+      ['returnValue', 'received', 'stockReturns']
+    ].forEach(([field, weight, total]) => {
+      const values = apportion(stockItems.map(row => row[weight]), DEMO_TOTALS[total]);
+      stockItems.forEach((row, i) => { row[field] = values[i]; });
+    });
+    const batches = Array.from({ length: DEMO_TOTALS.expired + DEMO_TOTALS.nearExpiry + 12 }, (_, i) => {
+      const item = stockItems[i % stockItems.length];
+      return Object.assign({}, item, {
+        batch: 'B261' + String(i + 1).padStart(3, '0'),
+        expiry: i < DEMO_TOTALS.expired ? addDays(asOf, -(i + 1)) :
+          i < DEMO_TOTALS.expired + DEMO_TOTALS.nearExpiry
+            ? addDays(asOf, i - DEMO_TOTALS.expired + 1) : addDays(asOf, 180 + i)
+      });
+    });
+    const stockAlerts = Array.from({ length: DEMO_TOTALS.outOfStock + DEMO_TOTALS.lowStock }, (_, i) => {
+      const status = i < DEMO_TOTALS.outOfStock ? 'Out of stock' : 'Low stock';
+      return Object.assign({}, stockItems[i % stockItems.length], {
+        branch: DEMO_BRANCHES[Math.floor(i / DEMO_STORES.length) % DEMO_BRANCHES.length],
+        store: DEMO_STORES[i % DEMO_STORES.length],
+        closing: status === 'Out of stock' ? 0 : 20 + i % 180,
+        status
+      });
+    });
+    const performanceRevenues = apportion(quantities.map((quantity, i) => quantity * DEMO_ITEMS[i][3] * 1.35), DEMO_TOTALS.dispensed);
+    const performance = stockItems.map((row, i) => Object.assign({}, row, {
+      sold: quantities[i],
+      revenue: performanceRevenues[i],
+      movement: quantities[i] >= 1000 ? 'Fast-moving' : quantities[i] >= 400 ? 'Normal-moving' : 'Slow-moving',
+      status: row.closing < 3500 ? 'Reorder' : row.expiry <= addDays(asOf, 90) ? 'Near expiry' : 'In stock'
+    }));
+    const transfers = Array.from({ length: 125 }, (_, i) => ({
+      no: 'ST-' + asOf.slice(2, 4) + '-' + String(i + 1).padStart(4, '0'),
+      date: addDays(asOf, -(i % 90)),
+      item: stockItems[i % stockItems.length],
+      from: DEMO_STORES[i % DEMO_STORES.length],
+      to: DEMO_STORES[(i + 1) % DEMO_STORES.length],
+      qty: 25 + i % 175
+    }));
+    const departmentConsumption = [
+      { department: 'Emergency', items: 184, amount: 22000 },
+      { department: 'Inpatient', items: 296, amount: 31500 },
+      { department: 'Surgery', items: 118, amount: 18400 },
+      { department: 'Outpatient', items: 96, amount: 13100 }
+    ];
+    const returnAmounts = apportion(Array.from({ length: 10 }, (_, i) => 1 + i), DEMO_TOTALS.grnReturns);
+    const purchaseReturns = returnAmounts.map((amount, i) => ({
+      no: 'PR-' + asOf.slice(2, 4) + '-' + String(i + 1).padStart(4, '0'),
+      date: addDays(asOf, -(i * 17)),
+      vendor: DEMO_VENDORS[i % DEMO_VENDORS.length],
+      branch: DEMO_BRANCHES[(i * 3) % DEMO_BRANCHES.length],
+      store: DEMO_STORES[i % DEMO_STORES.length],
+      amount,
+      items: 1 + i % 5
+    }));
+    return PH_DEMO = { asOf, totals: DEMO_TOTALS, grns, vendors, stockItems, stockValues, batches, stockAlerts, performance, transfers, departmentConsumption, purchaseReturns };
+  }
+  const demoRange = data => {
+    if (DEMO_FILTER.range === 'custom') return [DEMO_FILTER.from || addDays(data.asOf, -29), DEMO_FILTER.to || data.asOf];
+    const days = DEMO_FILTER.range === 'today' ? 1 : DEMO_FILTER.range === 'week' ? 7 : DEMO_FILTER.range === 'month' ? 30 : 365;
+    return [addDays(data.asOf, -(days - 1)), data.asOf];
+  };
+  const demoMetric = (label, value, note, key) =>
+    `<div class="mkk"${key ? ` data-phdemo-card="${key}" style="cursor:pointer" title="Open matching sample records"` : ''}><span>${label}</span><b>${value}</b><small>${note || '&nbsp;'}</small></div>`;
+  const demoIntro = title => `<div class="controls"><b style="font-size:14px">${title}${DEMO_BADGE}</b><span style="margin-left:auto;display:flex;gap:8px"><button type="button" class="btn ghost sm" onclick="window.print()">Print / PDF</button></span></div>`;
+  function demoFilters(data, section) {
+    const [from, to] = demoRange(data);
+    const options = (values, key, all) => `<div class="field"><label>${all}</label><select data-phdemo="${key}"><option value="">All ${all.toLowerCase()}</option>${values.map(value => `<option value="${q(value)}"${DEMO_FILTER[key] === value ? ' selected' : ''}>${q(value)}</option>`).join('')}</select></div>`;
+    return `<div class="controls">
+      <div class="field"><label>Date range</label><select data-phdemo="range">${[['today', 'Today'], ['week', 'Weekly'], ['month', 'Monthly'], ['year', 'Yearly'], ['custom', 'Custom date range']].map(([value, label]) => `<option value="${value}"${DEMO_FILTER.range === value ? ' selected' : ''}>${label}</option>`).join('')}</select></div>
+      ${DEMO_FILTER.range === 'custom' ? `<div class="field"><label>From</label><input type="date" data-phdemo="from" value="${q(DEMO_FILTER.from || from)}"></div><div class="field"><label>To</label><input type="date" data-phdemo="to" value="${q(DEMO_FILTER.to || to)}"></div>` : ''}
+      <div class="field"><label>Search</label><input type="search" data-phdemo="q" value="${q(DEMO_FILTER.q)}" placeholder="${section === 'phgr' ? 'GRN, invoice, or vendor' : 'Item name or code'}"></div>
+      ${section === 'phgr' ? options(data.vendors.map(row => row.name), 'vendor', 'Vendor') : ''}
+      ${section !== 'phgr' ? options(DEMO_ITEMS.map(row => row[1]), 'item', 'Item') : ''}
+      ${section !== 'phgr' ? options(Array.from(new Set(DEMO_ITEMS.map(row => row[2]))), 'category', 'Category') : ''}
+      ${options(DEMO_BRANCHES, 'branch', 'Branch')}
+      ${options(DEMO_STORES, 'store', 'Store')}
+      <button type="button" class="btn ghost sm" data-phdemo-reset>Reset filters</button>
+      <span style="margin-left:auto;display:flex;gap:8px"><button type="button" class="btn ghost sm" data-phdemo-export>Export CSV (Excel-compatible)</button></span>
+    </div>`;
+  }
+  function demoTable(title, headers, rows, note) {
+    return card(title, tbl(headers, rows), note);
+  }
+  function drawDemoSection(host, id) {
+    DEMO_FILTER = DEMO_FILTERS[id];
+    const data = pharmacyDemoData(), [from, to] = demoRange(data), qmatch = value =>
+      !DEMO_FILTER.q || String(value).toLowerCase().includes(DEMO_FILTER.q.toLowerCase());
+    const grns = data.grns.filter(row => row.date >= from && row.date <= to &&
+      (!DEMO_FILTER.vendor || row.vendor === DEMO_FILTER.vendor) &&
+      (!DEMO_FILTER.branch || row.branch === DEMO_FILTER.branch) &&
+      (!DEMO_FILTER.store || row.store === DEMO_FILTER.store) &&
+      qmatch(row.no + ' ' + row.invoice + ' ' + row.vendor));
+    const selectedVendors = data.vendors.map(vendor => {
+      const matches = grns.filter(row => row.vendor === vendor.name);
+      const purchase = matches.reduce((total, row) => total + row.amount, 0);
+      const outstanding = vendor.purchase ? Math.round(purchase * vendor.outstanding / vendor.purchase) : 0;
+      return Object.assign({}, vendor, {
+        purchase, paid: purchase - outstanding, outstanding, grns: matches.length,
+        last: matches.reduce((latest, row) => row.date > latest ? row.date : latest, '')
+      });
+    }).filter(row => row.grns && (!DEMO_FILTER.vendor || row.name === DEMO_FILTER.vendor) && qmatch(row.name));
+    const itemFilter = row => (!DEMO_FILTER.item || row.name === DEMO_FILTER.item) &&
+      (!DEMO_FILTER.category || row.category === DEMO_FILTER.category) &&
+      (!DEMO_FILTER.branch || row.branch === DEMO_FILTER.branch) &&
+      (!DEMO_FILTER.store || row.store === DEMO_FILTER.store) && qmatch(row.name + ' ' + row.code);
+    const stock = data.stockItems.filter(row => row.date >= from && row.date <= to && itemFilter(row));
+    const items = data.performance.filter(row => row.date >= from && row.date <= to && itemFilter(row));
+    const purchaseReturns = data.purchaseReturns.filter(row => row.date >= from && row.date <= to &&
+      (!DEMO_FILTER.vendor || row.vendor === DEMO_FILTER.vendor) &&
+      (!DEMO_FILTER.branch || row.branch === DEMO_FILTER.branch) &&
+      (!DEMO_FILTER.store || row.store === DEMO_FILTER.store) &&
+      qmatch(row.no + ' ' + row.vendor));
+    let html = demoIntro(id === 'phgr' ? 'GRN and vendors' : id === 'phst' ? 'Stock management' : 'Item performance') +
+      demoFilters(data, id) +
+      `<p class="note">Sample data only · reporting date ${dlf(data.asOf)}. These figures are separate from live hospital records. GRN/vendor register totals are cumulative; stock-ledger movements and returns are period values.</p>`;
+    if (id === 'phgr') {
+      const statusCounts = ['Approved', 'Pending', 'Rejected', 'Cancelled', 'Partially received'];
+      const highest = selectedVendors.slice().sort((a, b) => b.outstanding - a.outstanding)[0] || { name: 'No matching vendors', outstanding: 0 };
+      html += `<div class="mkkpis">${demoMetric('Total GRNs Generated', N(grns.length), 'sample rows matching filters', 'grn-all')}${statusCounts.map(status => demoMetric(status + ' GRNs', N(grns.filter(row => row.status === status).length), 'filtered sample register', 'grn-' + status)).join('')}${demoMetric('Total GRN Value', RSD(grns.reduce((total, row) => total + row.amount, 0)), 'filtered sample register', 'grn-all')}${demoMetric('Received Quantity', N(grns.reduce((total, row) => total + row.qty, 0)) + ' units', 'filtered sample register', 'grn-all')}${demoMetric('Purchase Returns', RSD(purchaseReturns.reduce((total, row) => total + row.amount, 0)), 'filtered vendor-register returns', 'grn-returns')}${demoMetric('Active Vendors', N(selectedVendors.length), 'sample vendors matching filters', 'vendors')}</div>
+        ${demoTable('GRN register', ['GRN Number', 'GRN Date', 'Vendor Name', 'Invoice Number', 'Store', 'Total Items', 'GRN Amount', 'Received Quantity', 'Status'],
+          grns.map(row => [row.no, dlf(row.date), q(row.vendor), row.invoice, row.store, N(row.items), RSD(row.amount), N(row.qty) + ' units', DEMO_STATUS(row.status)]), `${N(grns.length)} GRNs in the selected date range. Click headings to sort.`)}
+        ${demoTable('Vendor analysis', ['Vendor Name', 'Total Purchase Amount', 'Total Paid Amount', 'Outstanding Amount', 'Last Purchase Date', 'Total GRNs', 'Payment Status'],
+          selectedVendors.sort((a, b) => b.outstanding - a.outstanding).map(row => [q(row.name), RSD(row.purchase), RSD(row.paid), `<b class="${row.outstanding ? 'down' : 'up'}">${RSD(row.outstanding)}</b>`, row.last ? dlf(row.last) : '—', N(row.grns), DEMO_STATUS(row.outstanding ? 'Pending' : 'Approved')]), 'Vendor totals reconcile to the filtered GRN register; outstanding balances are highlighted.')}
+        ${card('Highest outstanding vendor', `<div class="mkkpis">${demoMetric(q(highest.name), RSD(highest.outstanding), 'highest sample outstanding')}</div>`)}`;
+    } else if (id === 'phst') {
+      const byStore = DEMO_STORES.map(store => [store, RSD(stock.filter(row => row.store === store).reduce((total, row) => total + row.stockValue, 0))]);
+      const byBranch = DEMO_BRANCHES.map(branch => [branch, RSD(stock.filter(row => row.branch === branch).reduce((total, row) => total + row.stockValue, 0))]);
+      const batches = data.batches.filter(itemFilter);
+      const alerts = data.stockAlerts.filter(itemFilter);
+      const nearExpiry = batches.filter(row => row.expiry >= data.asOf && row.expiry <= addDays(data.asOf, 90));
+      const expired = batches.filter(row => row.expiry < data.asOf);
+      const transfers = data.transfers.filter(row => row.date >= from && row.date <= to &&
+        (!DEMO_FILTER.branch || row.item.branch === DEMO_FILTER.branch) &&
+        (!DEMO_FILTER.store || row.from === DEMO_FILTER.store || row.to === DEMO_FILTER.store) &&
+        (!DEMO_FILTER.item || row.item.name === DEMO_FILTER.item) &&
+        (!DEMO_FILTER.category || row.item.category === DEMO_FILTER.category) &&
+        qmatch(row.item.name + ' ' + row.item.code));
+      html += `<div class="mkkpis">${demoMetric('Opening Stock Value', RSD(stock.reduce((total, row) => total + row.openingValue, 0)), 'period opening', 'opening-stock')}${demoMetric('Stock Received (GRN)', RSD(stock.reduce((total, row) => total + row.receivedValue, 0)), 'period receipts', 'received-stock')}${demoMetric('Sales / Dispensed Value', RSD(stock.reduce((total, row) => total + row.issuedValue, 0)), 'period issues', 'dispensed')}${demoMetric('Department Consumption', RSD(stock.reduce((total, row) => total + row.consumptionValue, 0)), 'internal issues', 'departments')}${demoMetric('Purchase Returns', RSD(stock.reduce((total, row) => total + row.returnValue, 0)), 'period stock-ledger returns', 'stock-returns')}${demoMetric('Stock Transfers', N(transfers.length), 'between stores', 'transfers')}${demoMetric('Closing Stock Value', RSD(stock.reduce((total, row) => total + row.stockValue, 0)), 'closing balance for filtered sample rows', 'closing-stock')}${demoMetric('Low Stock Items', N(alerts.filter(row => row.status === 'Low stock').length), 'reorder threshold', 'low-stock')}${demoMetric('Out-of-Stock Items', N(alerts.filter(row => row.status === 'Out of stock').length), 'immediate attention', 'out-of-stock')}${demoMetric('Expired Items', N(expired.length), 'quarantine review', 'expired')}${demoMetric('Near-Expiry Items', N(nearExpiry.length), 'within 90 days', 'near-expiry')}</div>
+        ${demoTable('Stock movement register', ['Item Name', 'Item Code', 'Category', 'Store', 'Batch Number', 'Opening Stock', 'Received Quantity', 'Issued Quantity', 'Closing Stock', 'Purchase Rate', 'Stock Value'],
+          stock.map(row => [q(row.name), row.code, q(row.category), row.store, row.batch, N(row.opening), N(row.received), N(row.issued), N(row.closing), RSD(row.unitRate), RSD(row.stockValue)]), 'Closing stock valuation across all demo items: ₹33,55,000.')}
+        <div class="grid2">${demoTable('Store-wise stock', ['Store', 'Stock Value'], byStore)}${demoTable('Branch-wise stock', ['Branch', 'Stock Value'], byBranch)}</div>
+        ${demoTable('Batch-wise stock and expiry tracking', ['Batch', 'Item', 'Branch', 'Store', 'Expiry Date', 'Closing Stock', 'Expiry Status'],
+          batches.map(row => [row.batch, q(row.name), row.branch, row.store, dlf(row.expiry), N(row.closing), DEMO_STATUS(row.expiry < data.asOf ? 'Rejected' : row.expiry <= addDays(data.asOf, 90) ? 'Pending' : 'Approved')]))}
+        <div class="grid2">${demoTable('Low-stock alerts', ['Item', 'Code', 'Branch', 'Store', 'Available', 'Alert'], alerts.map(row => [q(row.name), row.code, row.branch, row.store, N(row.closing), DEMO_STATUS(row.status === 'Out of stock' ? 'Rejected' : 'Pending')]))}
+        ${demoTable('Near-expiry alerts', ['Item', 'Batch', 'Store', 'Expiry Date', 'Days Remaining', 'Available'], nearExpiry.map(row => [q(row.name), row.batch, row.store, dlf(row.expiry), N(Math.ceil((Date.parse(row.expiry) - Date.parse(data.asOf)) / 86400000)), N(row.closing)]))}</div>
+        ${demoTable('Expired batch alerts', ['Item', 'Batch', 'Store', 'Expiry Date', 'Available', 'Status'], expired.map(row => [q(row.name), row.batch, row.store, dlf(row.expiry), N(row.closing), DEMO_STATUS('Rejected')]))}
+        ${demoTable('Stock transfers between stores', ['Transfer No.', 'Date', 'Item', 'From Store', 'To Store', 'Quantity', 'Status'], transfers.map(row => [row.no, dlf(row.date), q(row.item.name), row.from, row.to, N(row.qty), DEMO_STATUS('Approved')]))}
+        ${demoTable('Department-wise consumption', ['Department', 'Items Issued', 'Consumption Value'], data.departmentConsumption.map(row => [row.department, N(row.items), RSD(row.amount)]))}`;
+    } else {
+      const topQty = items.slice().sort((a, b) => b.sold - a.sold).slice(0, 10);
+      const lowQty = items.slice().sort((a, b) => a.sold - b.sold).slice(0, 10);
+      const topRevenue = items.slice().sort((a, b) => b.revenue - a.revenue).slice(0, 10);
+      const row = item => [q(item.name), item.code, q(item.category), N(item.sold), RSD(item.revenue), N(item.closing), DEMO_STATUS(item.status === 'In stock' ? 'Approved' : item.status === 'Near expiry' || item.status === 'Reorder' ? 'Pending' : 'Rejected'), item.movement];
+      html += `<div class="mkkpis">${demoMetric('Items Analyzed', N(items.length), 'sample item master')}${demoMetric('Top 10 Selling Quantity', N(topQty.reduce((total, item) => total + item.sold, 0)), 'units sold', 'top-quantity')}${demoMetric('Top 10 Item Revenue', RSD(topRevenue.reduce((total, item) => total + item.revenue, 0)), 'highest revenue items', 'top-revenue')}${demoMetric('Fast-Moving Items', N(items.filter(item => item.movement === 'Fast-moving').length), 'high demand', 'fast')}${demoMetric('Slow-Moving Items', N(items.filter(item => item.movement === 'Slow-moving').length), 'low sales', 'slow')}${demoMetric('Low Stock / Near Expiry', N(items.filter(item => item.status === 'Reorder' || item.status === 'Near expiry').length), 'review required', 'item-alerts')}</div>
+        ${demoTable('Top 10 selling medicines', ['Item Name', 'Item Code', 'Category', 'Quantity Sold', 'Revenue', 'Current Stock', 'Stock Status', 'Movement Type'], topQty.map(row))}
+        ${demoTable('Top 10 items by revenue', ['Item Name', 'Item Code', 'Category', 'Quantity Sold', 'Revenue', 'Current Stock', 'Stock Status', 'Movement Type'], topRevenue.map(row))}
+        ${demoTable('Lowest-selling medicines', ['Item Name', 'Item Code', 'Category', 'Quantity Sold', 'Revenue', 'Current Stock', 'Stock Status', 'Movement Type'], lowQty.map(row))}
+        ${demoTable('Item performance detail', ['Item Name', 'Item Code', 'Category', 'Total Quantity Sold', 'Total Revenue', 'Current Stock', 'Stock Status', 'Movement Type'], items.map(row))}
+        <div class="grid2">${demoTable('Fast-moving items', ['Item', 'Code', 'Category', 'Quantity Sold', 'Revenue'], items.filter(item => item.movement === 'Fast-moving').map(item => [q(item.name), item.code, q(item.category), N(item.sold), RSD(item.revenue)]))}
+        ${demoTable('Slow-moving medicines', ['Item', 'Code', 'Category', 'Quantity Sold', 'Revenue'], items.filter(item => item.movement === 'Slow-moving').map(item => [q(item.name), item.code, q(item.category), N(item.sold), RSD(item.revenue)]))}</div>
+        ${demoTable('Items requiring immediate reorder', ['Item', 'Code', 'Category', 'Branch', 'Store', 'Current Stock', 'Action'], items.filter(item => item.status === 'Reorder' || item.status === 'Out of stock').map(item => [q(item.name), item.code, q(item.category), item.branch, item.store, N(item.closing), DEMO_STATUS('Pending')]))}
+        ${demoTable('Items nearing expiry', ['Item', 'Code', 'Batch', 'Store', 'Expiry Date', 'Current Stock', 'Action'], data.batches.filter(item => item.expiry >= data.asOf && item.expiry <= addDays(data.asOf, 90) && itemFilter(item)).map(item => [q(item.name), item.code, item.batch, item.store, dlf(item.expiry), N(item.closing), DEMO_STATUS('Pending')]))}`;
+    }
+    host.innerHTML = html;
+    host.querySelectorAll('[data-phdemo]').forEach(control => {
+      const update = () => {
+        DEMO_FILTER[control.dataset.phdemo] = control.value;
+        const search = control.dataset.phdemo === 'q';
+        const selectionStart = search ? control.selectionStart : null;
+        const selectionEnd = search ? control.selectionEnd : null;
+        drawDemoSection(host, id);
+        if (search) {
+          const next = host.querySelector('[data-phdemo="q"]');
+          if (next) { next.focus(); next.setSelectionRange(selectionStart, selectionEnd); }
+        }
+      };
+      control.addEventListener(control.dataset.phdemo === 'q' ? 'input' : 'change', update);
+    });
+    const reset = host.querySelector('[data-phdemo-reset]');
+    if (reset) reset.onclick = () => {
+      Object.assign(DEMO_FILTER, { range: 'year', from: '', to: '', q: '', vendor: '', item: '', category: '', branch: '', store: '' });
+      drawDemoSection(host, id);
+    };
+    const exportButton = host.querySelector('[data-phdemo-export]');
+    if (exportButton) exportButton.onclick = () => {
+      const tables = Array.from(host.querySelectorAll('table.btx'));
+      const lines = ['"DEMO DATA - SAMPLE REPORT"'];
+      tables.forEach((table, i) => {
+        if (i) lines.push('');
+        lines.push('"' + (table.closest('.card').querySelector('h2').textContent || '').replace(/"/g, '""') + '"');
+        Array.from(table.rows).forEach(tr => lines.push(Array.from(tr.cells).map(cell =>
+          '"' + cell.textContent.trim().replace(/"/g, '""') + '"').join(',')));
+      });
+      const url = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url; link.download = 'pharmacy-' + id + '-demo.csv'; link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+    host.querySelectorAll('[data-phdemo-card]').forEach(kpi => { kpi.onclick = () => {
+      const key = kpi.dataset.phdemoCard, title = kpi.querySelector('span').textContent;
+      let rows, headers;
+      if (id === 'phgr') {
+        if (key === 'grn-returns') {
+          rows = purchaseReturns;
+          headers = ['Return Number', 'Date', 'Vendor', 'Branch', 'Store', 'Items', 'Return Amount'];
+          rows = rows.map(row => [row.no, dlf(row.date), q(row.vendor), row.branch, row.store, N(row.items), RSD(row.amount)]);
+        } else {
+          rows = key === 'vendors' ? selectedVendors : key === 'grn-all'
+            ? grns : grns.filter(row => row.status === key.slice(4));
+          headers = key === 'vendors'
+            ? ['Vendor', 'Purchase', 'Paid', 'Outstanding', 'Last Purchase', 'GRNs']
+            : ['GRN Number', 'Date', 'Vendor', 'Invoice', 'Store', 'Amount', 'Received Qty', 'Status'];
+          rows = rows.map(row => key === 'vendors'
+            ? [q(row.name), RSD(row.purchase), RSD(row.paid), RSD(row.outstanding), dlf(row.last), N(row.grns)]
+            : [row.no, dlf(row.date), q(row.vendor), row.invoice, row.store, RSD(row.amount), N(row.qty), DEMO_STATUS(row.status)]);
+        }
+      } else if (id === 'phst') {
+        rows = key === 'transfers' ? data.transfers.filter(row => row.date >= from && row.date <= to &&
+          (!DEMO_FILTER.branch || row.item.branch === DEMO_FILTER.branch) &&
+          (!DEMO_FILTER.store || row.from === DEMO_FILTER.store || row.to === DEMO_FILTER.store) &&
+          (!DEMO_FILTER.item || row.item.name === DEMO_FILTER.item) &&
+          (!DEMO_FILTER.category || row.item.category === DEMO_FILTER.category) &&
+          qmatch(row.item.name + ' ' + row.item.code)) : key === 'low-stock' || key === 'out-of-stock'
+          ? data.stockAlerts.filter(row => itemFilter(row) && (key === 'low-stock' ? row.status === 'Low stock' : row.status === 'Out of stock'))
+          : key === 'expired' || key === 'near-expiry'
+            ? data.batches.filter(row => itemFilter(row) && (key === 'expired' ? row.expiry < data.asOf : row.expiry >= data.asOf && row.expiry <= addDays(data.asOf, 90)))
+            : key === 'departments' ? data.departmentConsumption
+              : stock;
+        if (key === 'departments') {
+          headers = ['Department', 'Items Issued', 'Consumption Value'];
+          rows = rows.map(row => [row.department, N(row.items), RSD(row.amount)]);
+        } else if (['opening-stock', 'received-stock', 'dispensed', 'stock-returns', 'closing-stock'].indexOf(key) >= 0) {
+          const movement = {
+            'opening-stock': ['Opening Stock', 'opening', 'openingValue'],
+            'received-stock': ['Received Quantity', 'received', 'receivedValue'],
+            dispensed: ['Issued Quantity', 'issued', 'issuedValue'],
+            'stock-returns': ['Return', '', 'returnValue'],
+            'closing-stock': ['Closing Stock', 'closing', 'stockValue']
+          }[key];
+          headers = ['Item', 'Code', 'Branch', 'Store', movement[1] ? movement[0] : 'Quantity', movement[0] + ' Value'];
+          rows = stock.map(row => [q(row.name), row.code, row.branch, row.store, movement[1] ? N(row[movement[1]]) : '—', RSD(row[movement[2]])]);
+        } else {
+          headers = key === 'transfers' ? ['Transfer No.', 'Item', 'From Store', 'To Store', 'Quantity']
+            : ['Item', 'Code', 'Branch', 'Store', 'Batch', 'Available', 'Status'];
+          rows = rows.map(row => key === 'transfers'
+            ? [row.no, q(row.item.name), row.from, row.to, N(row.qty)]
+            : [q(row.name), row.code, row.branch, row.store, row.batch, N(row.closing),
+              DEMO_STATUS(key === 'expired' || row.status === 'Out of stock' ? 'Rejected' : key === 'near-expiry' || key === 'low-stock' ? 'Pending' : 'Approved')]);
+        }
+      } else {
+        rows = key === 'fast' ? items.filter(row => row.movement === 'Fast-moving')
+          : key === 'slow' ? items.filter(row => row.movement === 'Slow-moving')
+            : key === 'item-alerts' ? items.filter(row => row.status === 'Reorder' || row.status === 'Near expiry')
+              : items.slice().sort((a, b) => key === 'top-revenue' ? b.revenue - a.revenue : b.sold - a.sold).slice(0, 10);
+        headers = ['Item', 'Code', 'Category', 'Quantity Sold', 'Revenue', 'Current Stock', 'Movement'];
+        rows = rows.map(row => [q(row.name), row.code, q(row.category), N(row.sold), RSD(row.revenue), N(row.closing), row.movement]);
+      }
+      drawer(`<h2 style="margin:0 0 4px">${q(title)}${DEMO_BADGE}</h2><p class="note">${N(rows.length)} sample records</p>` + tbl(headers, rows));
+    }; });
+    tips(host);
+  }
 
   function draw(id) {
-    const host = document.getElementById(ROOT[id]); if (!host || !RT.store) return;
+    const host = document.getElementById(ROOT[id]); if (!host) return;
+    if (id === 'phgr' || id === 'phst' || id === 'phit') { drawDemoSection(host, id); return; }
+    if (!RT.store) return;
     try {
       const ss = snaps(); if (!ss.length) { host.innerHTML = card('No management report loaded', '<p class="note" style="margin:0">Pharmacy sales come from the management dashboard report.</p>'); return; }
       const P = period(ss), last = ss[ss.length - 1], k = last.data.kpi, asOf = last.asOf; let html = '';
       if (id === 'phov') {
+        const demo = pharmacyDemoData();
+        const demoStoreByType = { OP: 'OP Pharmacy', IP: 'IP Pharmacy', Central: 'Central Store' };
+        const movementRows = demo.performance.filter(item =>
+          (!PH.branch || item.branch === PH.branch) &&
+          (!PH.type || item.store === demoStoreByType[PH.type]));
+        const fastItems = movementRows.filter(item => item.movement === 'Fast-moving').sort((a, b) => b.sold - a.sold).slice(0, 3);
+        const slowItems = movementRows.filter(item => item.movement === 'Slow-moving').sort((a, b) => a.sold - b.sold).slice(0, 3);
+        const movementTable = rows => rows.length
+          ? tbl(['Item', 'Category', 'Quantity issued'], rows.map(item => [q(item.name), q(item.category), N(item.sold)]))
+          : '<p class="note" style="margin:0">No demo movement rows match the selected branch and store.</p>';
+        const movementNote = 'Generated demo stock-ledger quantities; branch and store filters apply. Reporting-period filters do not apply to this sample.';
         const sp = regSpan(), rr = sp ? regFilter(P.from < sp[0] ? sp[0] : P.from, P.to > sp[1] ? sp[1] : P.to) : [], RG = regSummary(rr), covered = sp && P.from <= sp[1] && P.to >= sp[0];
         const all = pharmRows(last).filter(ok), opM = (k.opPharmMargin || {}).mtd || 0;
-        html = filt(ss) + scope() + seg() + `<p class="note" style="margin:8px 2px 0"><b>Period:</b> ${P.label}. As on ${asOf}.</p>
-        <div class="mkkpis" style="margin-top:10px">${need('Total current stock quantity', 'needs the stock ledger')}${need('Total stock value', 'needs the stock ledger')}${kk('Total pharmacy sales', RS(P.value), P.cmp != null ? pnt(P.pct) + ' vs ' + P.cmpLabel + ' (' + RS(P.cmp) + ')' : 'no comparison period on file', '#0F766E', 'sales')}${need('Total GRN generated', 'needs GRN records')}</div>
-        <div class="mkkpis" style="margin-top:12px">${need('Total GRN value', 'needs GRN records')}${kk('Total returns', covered ? RS(RG.ret) : '—', covered ? N(RG.retN) + ' OP pharmacy returns · ' + reg() : 'outside the bill register period. ' + reg(), '#B45309', 'returns')}${need('Closing / available stock', 'needs the stock ledger')}${need('Active items', 'needs the item master')}</div>
+        html = filt(ss) + scope() + seg() + `<p class="note" style="margin:8px 2px 0"><b>Period:</b> ${P.label}. As on ${asOf}. Inventory and GRN metrics are ${DEMO_BADGE}.</p>
+        <div class="grid2" style="margin-top:0">${card('Fast-moving items ' + DEMO_BADGE, movementTable(fastItems), movementNote)}${card('Slow-moving items ' + DEMO_BADGE, movementTable(slowItems), movementNote)}</div>
+        <div class="mkkpis" style="margin-top:10px">${kk('Total current stock quantity', N(sum(demo.stockItems, 'closing')), 'DEMO DATA · units on hand')}${kk('Total stock value', RSD(demo.totals.closingStock), 'DEMO DATA · sample stock ledger')}${kk('Total pharmacy sales', RS(P.value), P.cmp != null ? pnt(P.pct) + ' vs ' + P.cmpLabel + ' (' + RS(P.cmp) + ')' : 'no comparison period on file', '#0F766E', 'sales')}${kk('Total GRN generated', N(demo.grns.length), 'DEMO DATA · sample register')}</div>
+        <div class="mkkpis" style="margin-top:12px">${kk('Total GRN value', RSD(demo.totals.grnValue), 'DEMO DATA · sample register')}${kk('Total returns', covered ? RS(RG.ret) : '—', covered ? N(RG.retN) + ' OP pharmacy returns · ' + reg() : 'outside the bill register period. ' + reg(), '#B45309', 'returns')}${kk('Closing / available stock', RSD(demo.totals.closingStock), 'DEMO DATA · sample stock ledger')}${kk('Active items', N(DEMO_ITEMS.length), 'DEMO DATA · sample item master')}</div>
         <div class="mkkpis" style="margin-top:12px">${kk('OP pharmacy sales', RS((k.opPharm || {}).mtd), 'this month to date · last year ' + RS((k.opPharm || {}).lymtd), '', 'sales')}${kk('OP pharmacy gross margin', opM.toFixed(1) + '%', 'reported month to date · last month ' + ((k.opPharmMargin || {}).pmt || 0).toFixed(1) + '%', '#047857', 'margin')}${kk('Bills', covered ? N(RG.bills) : '—', covered ? 'OP pharmacy bills · ' + reg() : 'outside the bill register', '', 'bills')}${kk('Average bill value', covered ? '₹' + N(RG.avg) : '—', 'sales bills only')}${kk('Net sales (OP bills)', covered ? RS(RG.net) : '—', 'after returns and refunds')}</div>
         ${card('Day-wise pharmacy sales', stack(P.dly.filter(x => x.d >= addDays(asOf, -29))), 'Last 30 days on file, by store type. Source: management report.')}
         ${card('Comparison with previous periods', tbl(['Period', 'Pharmacy sales', 'Compared with', 'Change'], [['Today', RS(sum(P.rows, 'today')), 'Yesterday ' + RS(sum(P.rows, 'yest')), pnt(pc(sum(P.rows, 'today'), sum(P.rows, 'yest')))], ['This month to date', RS(sum(P.rows, 'mtd')), 'Same period last year ' + RS(sum(P.rows, 'lymtd')), pnt(pc(sum(P.rows, 'mtd'), sum(P.rows, 'lymtd')))], ['Last month (full)', RS(sum(P.rows, 'pmt')), 'Month before ' + RS(sum(P.rows, 'bpm')), pnt(pc(sum(P.rows, 'pmt'), sum(P.rows, 'bpm')))], ['This year to date', RS(sum(P.rows, 'ytd')), 'Same period last year ' + RS(sum(P.rows, 'lyytd')), pnt(pc(sum(P.rows, 'ytd'), sum(P.rows, 'lyytd')))]]))}
@@ -1625,38 +2280,30 @@ function drawMk(pn){
         ${recon(ss)}${readiness()}`;
       }
       if (id === 'phsa') {
+        const demo = pharmacyDemoData();
         const asY = asOf.slice(0, 4), months = [...new Set(ss.map(s => s.asOf.slice(0, 7)))].sort(), lvl = PH.level;
         const trail = `<p class="note" style="margin:6px 2px 10px"><button type="button" class="btn ghost sm" data-phl="year">Year ${asY}</button> ${lvl !== 'year' ? '› <button type="button" class="btn ghost sm" data-phl="month">Months</button>' : ''} ${lvl === 'day' ? '› <b>' + q(PH.month) + ' by day</b>' : ''}</p>`;
         const sp = regSpan(), rr = sp ? regFilter(P.from < sp[0] ? sp[0] : P.from, P.to > sp[1] ? sp[1] : P.to) : [], RG = regSummary(rr), covered = sp && P.from <= sp[1] && P.to >= sp[0];
         html = filt(ss, { tx: true }) + scope() + seg() + `<p class="note" style="margin:8px 2px 0"><b>Period:</b> ${P.label}.</p>
-        <div class="mkkpis" style="margin-top:10px">${kk('Total sales amount', RS(P.value), P.cmp != null ? pnt(P.pct) + ' vs ' + P.cmpLabel : 'no comparison on file', '#0F766E')}${kk('Number of bills', covered ? N(RG.bills) : '—', covered ? 'OP pharmacy, ' + reg() : 'outside the bill register')}${need('Total items sold', 'bills carry amounts, not items')}${kk('Average bill value', covered ? '₹' + N(RG.avg) : '—', 'sales bills only')}${kk('Sales returns', covered ? RS(RG.ret) : '—', covered ? N(RG.retN) + ' returns · ' + N(RG.refN) + ' refunds' : '', '#B45309')}${kk('Net sales', covered ? RS(RG.net) : RS(P.value), covered ? 'OP bills after returns' : 'management report figure')}</div>
+        <div class="mkkpis" style="margin-top:10px">${kk('Total sales amount', RS(P.value), P.cmp != null ? pnt(P.pct) + ' vs ' + P.cmpLabel : 'no comparison on file', '#0F766E')}${kk('Number of bills', covered ? N(RG.bills) : '—', covered ? 'OP pharmacy, ' + reg() : 'outside the bill register')}${kk('Total items sold', N(demo.performance.reduce((total, item) => total + item.sold, 0)), DEMO_BADGE + ' sample item lines')}${kk('Average bill value', covered ? '₹' + N(RG.avg) : '—', 'sales bills only')}${kk('Sales returns', covered ? RS(RG.ret) : '—', covered ? N(RG.retN) + ' returns · ' + N(RG.refN) + ' refunds' : '', '#B45309')}${kk('Net sales', covered ? RS(RG.net) : RS(P.value), covered ? 'OP bills after returns' : 'management report figure')}</div>
         ${card('Day-wise sales trend', stack(P.dly.filter(x => x.d >= P.from && x.d <= P.to).length > 1 ? P.dly.filter(x => x.d >= P.from && x.d <= P.to) : P.dly.slice(-30)), 'Shows the selected period, or the last 30 days when the period is a single day.')}
         ${card('Year, month and day drill-down', trail + (lvl === 'year' ? tbl(['Year', 'Sales (to date)', 'Last year, same period', 'Change', 'Open'], [[asY + ' (year to date)', '<b>' + RS(sum(P.rows, 'ytd')) + '</b>', RS(sum(P.rows, 'lyytd')), pnt(pc(sum(P.rows, 'ytd'), sum(P.rows, 'lyytd'))), '<button type="button" class="btn ghost sm" data-phl="month">Months</button>']]) : '') + (lvl === 'month' ? tbl(['Month', 'Sales', 'Compared with', 'Change', 'Open'], [...months.slice().reverse().map(m => { const cur = m === asOf.slice(0, 7), d = daily(ss).filter(x => x.d.slice(0, 7) === m).filter(x => true), tot = cur ? sum(P.rows, 'mtd') : (m === addDays(asOf.slice(0, 8) + '01', -1).slice(0, 7) ? sum(P.rows, 'pmt') : null);
           return [m + (cur ? ' (to date)' : ''), tot != null ? '<b>' + RS(tot) + '</b>' : RS(d.reduce((a, x) => a + x.total, 0)) + ' <span class="note">(days on file)</span>', cur ? 'Same period last year ' + RS(sum(P.rows, 'lymtd')) : 'Month before ' + RS(sum(P.rows, 'bpm')), cur ? pnt(pc(sum(P.rows, 'mtd'), sum(P.rows, 'lymtd'))) : pnt(pc(sum(P.rows, 'pmt'), sum(P.rows, 'bpm'))), `<button type="button" class="btn ghost sm" data-phm="${m}">Days</button>`]; })]) : '') + (lvl === 'day' ? tbl(['Date', 'Sales', 'Change on previous day', 'OP', 'IP', 'OT', 'Central'], P.dly.filter(x => x.d.slice(0, 7) === PH.month).slice().reverse().map((x, i, a) => { const pv = a[i + 1]; return [dlf(x.d) + ' ' + new Date(x.d + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' }), '<b>' + RS(x.total) + '</b>', pv ? pnt(pc(x.total, pv.total)) : '', N(x.by.OP), N(x.by.IP), N(x.by.OT), N(x.by.Central)]; })) : ''), 'Daily detail exists only for the days with a daily management report. Earlier months are available as monthly totals.')}`;
       }
       if (id === 'phbr') {
+        const demo = pharmacyDemoData();
         const brs = {}; P.rows.length; pharmRows(last).filter(r => !PH.type || r.type === PH.type).forEach(r => { const b = brs[r.branch] = brs[r.branch] || { b: r.branch, today: 0, mtd: 0, pmt: 0, ytd: 0, lyytd: 0, lymtd: 0, st: [] }; b.today += r.today; b.mtd += r.mtd; b.pmt += r.pmt; b.ytd += r.ytd; b.lyytd += r.lyytd; b.lymtd += r.lymtd; b.st.push(r); });
         const sp = regSpan(), dayN = +asOf.slice(8), rr = sp ? regRows().filter(r => (!PH.tx || regKind(r) === PH.tx)) : [], by = {}; rr.forEach(r => { const b = tc(r.loc); (by[b] = by[b] || []).push(r); });
         const list = Object.values(brs).sort((a, b) => b.mtd - a.mtd).filter(b => !PH.branch || b.b === PH.branch), tot = sum(list, 'mtd') || 1, mx = Math.max(...list.map(b => Math.max(b.mtd, b.pmt)), 1);
         const W = 860, H = 240, PL = 56, PB = 46, PT = 12, bw = (W - PL - 10) / Math.max(list.length, 1), y = v => PT + (H - PT - PB) * (1 - v / (mx * 1.1)); let g = ''; for (let i = 0; i <= 4; i++) { const v = mx * 1.1 * i / 4; g += `<line x1="${PL}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="#E2E8F0"/><text x="${PL - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#64748B" font-family="Inter">${C(v)}</text>`; }
         list.forEach((b, i) => { const x = PL + i * bw + bw * .12; [[b.pmt, '#BFE9E4', 'Last month'], [b.mtd, '#0D9488', 'This month to date']].forEach(([v, c, t], j) => { g += `<rect class="hitbar" x="${x + j * bw * .38}" y="${y(v)}" width="${bw * .34}" height="${Math.max(1, H - PB - y(v))}" rx="2" fill="${c}" data-tip="${q('<span class="t">' + b.b + '</span>' + t + ' ' + RS(v))}"/>`; }); g += `<text x="${x + bw * .36}" y="${H - PB + 16}" text-anchor="middle" font-size="10.5" fill="#475569" font-family="Inter">${q(b.b.slice(0, 11))}</text>`; });
         const regOnly = Object.keys(by).filter(n => !brs[n]);
-        html = filt(ss, { tx: true }) + scope() + `<div class="mkkpis">${kk('Branches with a pharmacy', N(list.length), 'from the management report')}${kk('Pharmacy sales this month', RS(sum(list, 'mtd')), pnt(pc(sum(list, 'mtd'), sum(list, 'lymtd'))) + ' vs same period last year')}${kk('Average sales per day', RS(sum(list, 'mtd') / (dayN || 1)), 'month to date, ' + dayN + ' days')}${kk('Year to date', RS(sum(list, 'ytd')), pnt(pc(sum(list, 'ytd'), sum(list, 'lyytd'))) + ' vs last year')}${need('Current stock and GRN by branch', 'needs the stock ledger and GRN')}</div>
+        html = filt(ss, { tx: true }) + scope() + `<div class="mkkpis">${kk('Branches with a pharmacy', N(list.length), 'from the management report')}${kk('Pharmacy sales this month', RS(sum(list, 'mtd')), pnt(pc(sum(list, 'mtd'), sum(list, 'lymtd'))) + ' vs same period last year')}${kk('Average sales per day', RS(sum(list, 'mtd') / (dayN || 1)), 'month to date, ' + dayN + ' days')}${kk('Year to date', RS(sum(list, 'ytd')), pnt(pc(sum(list, 'ytd'), sum(list, 'lyytd'))) + ' vs last year')}${kk('Current stock and GRN by branch', RSD(demo.totals.closingStock), DEMO_BADGE + ' sample inventory by branch')}</div>
         ${card('Branch comparison', `<svg viewBox="0 0 ${W} ${H}">${g}</svg><div class="legend"><span><i class="sw" style="background:#BFE9E4"></i>Last month</span><span><i class="sw" style="background:#0D9488"></i>This month to date</span></div>`, 'Last month is a full month, this month is part-way.')}
-        ${card('Branch-wise pharmacy report', `<p class="note">Click a branch for its stores and bills. Stock, GRN and closing stock columns need the pharmacy system.</p>` + `<div class="lgscroll"><table><thead><tr><th class="l">Branch</th><th>Sales this month</th><th>Share</th><th>Avg per day</th><th>Last month</th><th>Year to date</th><th>vs last year</th><th>OP bills</th><th>Returns</th><th>Current stock</th><th>Stock value</th><th>GRN qty / value</th><th>Closing stock</th></tr></thead><tbody>${list.map(b => { const rg = regSummary(by[b.b.toUpperCase().replace(/ /g, ' ')] || by[b.b] || []); return `<tr class="brrow" data-phb="${q(b.b)}"><td class="l"><b>${q(b.b)}</b></td><td><b>${N(b.mtd)}</b></td><td>${(100 * b.mtd / tot).toFixed(1)}%<span class="bar" style="width:${Math.max(3, 100 * b.mtd / (list[0].mtd || 1))}%"></span></td><td>${N(b.mtd / (dayN || 1))}</td><td>${N(b.pmt)}</td><td>${N(b.ytd)}</td><td>${pnt(pc(b.ytd, b.lyytd))}</td><td>${rg.bills ? N(rg.bills) : '—'}</td><td>${rg.ret ? N(rg.ret) : '—'}</td><td class="note">needs data</td><td class="note">needs data</td><td class="note">needs data</td><td class="note">needs data</td></tr>`; }).join('')}</tbody></table></div>`, '')}
+        ${card('Branch-wise pharmacy report', `<p class="note">Stock and GRN columns contain separate ${DEMO_BADGE} sample inventory figures; sales and bills remain from the management report.</p>` + `<div class="lgscroll"><table><thead><tr><th class="l">Branch</th><th>Sales this month</th><th>Share</th><th>Avg per day</th><th>Last month</th><th>Year to date</th><th>vs last year</th><th>OP bills</th><th>Returns</th><th>Current stock (demo)</th><th>Stock value (demo)</th><th>GRN qty / value (demo)</th><th>Closing stock (demo)</th></tr></thead><tbody>${list.map((b, branchIndex) => { const rg = regSummary(by[b.b.toUpperCase().replace(/ /g, ' ')] || by[b.b] || []), branchName = DEMO_BRANCHES.indexOf(b.b) >= 0 ? b.b : DEMO_BRANCHES[branchIndex % DEMO_BRANCHES.length], branchStock = demo.stockItems.filter(row => row.branch === branchName), branchGrns = demo.grns.filter(row => row.branch === branchName); const stockQty = branchStock.reduce((total, row) => total + row.closing, 0), stockVal = branchStock.reduce((total, row) => total + row.stockValue, 0), grnQty = branchGrns.reduce((total, row) => total + row.qty, 0), grnVal = branchGrns.reduce((total, row) => total + row.amount, 0); return `<tr class="brrow" data-phb="${q(b.b)}"><td class="l"><b>${q(b.b)}</b></td><td><b>${N(b.mtd)}</b></td><td>${(100 * b.mtd / tot).toFixed(1)}%<span class="bar" style="width:${Math.max(3, 100 * b.mtd / (list[0].mtd || 1))}%"></span></td><td>${N(b.mtd / (dayN || 1))}</td><td>${N(b.pmt)}</td><td>${N(b.ytd)}</td><td>${pnt(pc(b.ytd, b.lyytd))}</td><td>${rg.bills ? N(rg.bills) : '—'}</td><td>${rg.ret ? N(rg.ret) : '—'}</td><td>${N(stockQty)}</td><td>${RSD(stockVal)}</td><td>${N(grnQty)} / ${RSD(grnVal)}</td><td>${RSD(stockVal)}</td></tr>`; }).join('')}</tbody></table></div>`, '')}
         ${regOnly.length ? card('Branches in the bill register only', tbl(['Branch', 'OP pharmacy bills', 'Net sales'], regOnly.map(n => { const g2 = regSummary(by[n]); return [n, N(g2.bills), RS(g2.net)]; })), 'These branches have OP pharmacy bills but no separate pharmacy line in the management report. ' + reg() + '.') : ''}`;
         host.__branches = brs; host.__by = by;
       }
-      if (id === 'phgr') html = intro('GRN and vendors') + integ('GRN and vendor analysis', 'No GRN, purchase, vendor or purchase-return records exist in the management report or the bill register, so GRN counts, values, vendor performance and outstanding payables cannot be calculated. Nothing is estimated.',
-        [['Total GRNs generated', 'daily, monthly, yearly reports'], ['Total GRN value', 'purchase + GST'], ['Received quantity', 'by item and vendor'], ['Purchase returns', 'returns to vendor'], ['Pending / cancelled / completed GRNs', 'GRN status'], ['Vendors and last purchase date', 'vendor history']],
-        [['GRN number, GRN date, status', 'GRN register and status counts'], ['Branch / store', 'store-wise and branch-wise GRN'], ['Vendor name and vendor ID', 'vendor performance and history'], ['Invoice number and invoice date', 'GRN to invoice match'], ['Item code, item name, category', 'items supplied'], ['Received quantity, free quantity, unit', 'quantity received'], ['Purchase rate, taxable amount, GST amount, total value', 'purchase amount, GST, GRN value'], ['Purchase return number, date, quantity, value', 'purchase returns'], ['Vendor payment status / payable', 'outstanding amount (only if payments are held)']]);
-      if (id === 'phst') html = intro('Stock management') + integ('Stock management and movement', 'No stock ledger exists in the loaded sources. Opening, closing, low-stock, expiry and transfer figures are therefore not shown. They will be calculated with the formula below once the stock ledger is connected.',
-        [['Opening stock', 'start of period'], ['Stock received (GRN)', 'purchases'], ['Sales / dispensed quantity', 'from bill lines'], ['Department consumption', 'internal issues'], ['Sales returns / purchase returns', 'returns in and out'], ['Stock transfers and adjustments', 'inter-store and corrections'], ['Closing stock', 'by item, category, store, branch'], ['Low, out-of-stock, expired and near-expiry items', 'stock alerts']],
-        [['Store, branch, item code, batch', 'item-wise and store-wise stock'], ['Opening quantity and value per period', 'opening stock'], ['Movement type (GRN, sale, issue, return in, return out, transfer in, transfer out, adjustment)', 'stock movement'], ['Quantity and rate per movement', 'quantity and stock value'], ['Batch expiry date', 'expired and near-expiry stock'], ['Reorder level / minimum stock', 'low-stock and out-of-stock items'], ['Item category', 'category-wise stock report']],
-        card('Stock reconciliation formula', `<p style="margin:0;font-size:14px;line-height:1.7"><b>Closing stock</b> = Opening stock + Stock received + Stock returns in − Sales / dispensing − Department consumption − Returns to vendor ± Adjustments and transfers.</p><p class="note" style="margin:10px 0 0">Each stock movement is counted once: a sale or a dispense is one outgoing movement (never both), and an inter-store transfer is shown as out of one store and into another, so it nets to zero for the branch group.</p>`));
-      if (id === 'phit') html = intro('Item performance') + integ('Top and bottom performing items', 'Pharmacy bills in the bill register carry only the bill amount, not the medicines sold, so item-wise sales cannot be built. Nothing is estimated.',
-        [['Top 10 selling medicines', 'quantity and value'], ['Lowest selling medicines', 'quantity and value'], ['Highest revenue items', 'sales value'], ['Fast-moving items', 'movement rate'], ['Slow-moving items', 'movement rate'], ['Low stock and near-expiry items', 'with branch']],
-        [['Bill line items: item code and name, quantity, rate, amount', 'items sold and item revenue'], ['Branch and store on each line', 'item sales by branch'], ['Current stock per item and store', 'stock against sales'], ['Batch expiry date', 'near-expiry items'], ['Item category', 'category-wise performance']]);
       host.innerHTML = html;
       host.querySelectorAll('[data-ph]').forEach(s2 => { s2.onchange = () => { PH[s2.dataset.ph] = s2.value; draw(id); }; });
       host.querySelectorAll('[data-phr]').forEach(b => { b.onclick = () => { PH.range = b.dataset.phr; if (PH.range === 'custom' && !PH.from) { PH.to = asOf; PH.from = addDays(asOf, -6); } draw(id); }; });
@@ -1676,11 +2323,11 @@ function drawMk(pn){
       const dl2 = daily(ss.filter(s => s.asOf >= a && s.asOf <= b)); let mg = dl2.reduce((x, y) => x + (y.opk || 0), 0), note = 'sum of daily management figures';
       if (m === addDays(last.asOf.slice(0, 8) + '01', -1).slice(0, 7) && a === m + '-01') { mg = (last.data.kpi.opPharm || {}).pmt; note = 'management report month total'; }
       rows.push([m + ' (' + dl(a) + ' to ' + dl(b) + ')', RS(rg), RS(mg), N(rg - mg), pnt(pc(rg, mg)), note]); });
-    return card('Reconciliation: bill register against the management report (OP pharmacy)', tbl(['Period', 'Bill register net', 'Management report', 'Difference', 'Difference %', 'Management figure'], rows), 'Both come from the Presco billing data and should agree. Small differences are bills posted on a different day. Stock and GRN cannot be reconciled because they are not loaded.');
+    return card('Reconciliation: bill register against the management report (OP pharmacy)', tbl(['Period', 'Bill register net', 'Management report', 'Difference', 'Difference %', 'Management figure'], rows), 'Both come from the Presco billing data and should agree. Small differences are bills posted on a different day. Stock and GRN figures elsewhere are separate demo samples, not live billing records.');
   }
   function readiness() {
-    const R = (a, b, c, s) => [a, b, `<span class="pf-v ${s === 'Available' ? 'ok' : s === 'Derived' ? 'ok2' : 'wl'}">${s}</span>`, c];
-    return card('Data readiness', tbl(['Metric', 'Source', 'Status', 'Detail'], [R('Total pharmacy sales', 'Management report, pharmacy store lines', 'by store, branch and day', 'Available'), R('Number of bills, average bill value', 'Bill register, OP pharmacy bills', 'OP pharmacy only, ' + reg(), 'Available'), R('Sales returns, refunds, net sales', 'Bill register', 'OP pharmacy returns and refunds', 'Available'), R('Gross margin', 'Management report', 'reported for OP pharmacy; IP margin is reported as 0', 'Available'), R('Cost of goods (estimate)', 'Sales and reported margin', 'would be an estimate, so it is not shown', 'Derived'), R('Items sold, item-wise sales', 'Bill line items', 'bills hold amounts only', 'Missing'), R('Current stock, stock value, closing stock', 'Stock ledger', 'not loaded', 'Missing'), R('GRN, vendors, purchase returns', 'GRN and vendor records', 'not loaded', 'Missing'), R('Expiry, low stock, transfers, adjustments', 'Stock ledger, batches', 'not loaded', 'Missing'), R('Payment type', 'Payment mode on bills', 'receipts carry no mode', 'Missing')]));
+    const R = (a, b, c, s) => [a, b, `<span class="pf-v ${s === 'Available' ? 'ok' : s === 'Derived' || s === 'Demo data' ? 'ok2' : s === 'Not included' ? 'nv' : 'wl'}">${s}</span>`, c];
+    return card('Data readiness', tbl(['Metric', 'Source', 'Status', 'Detail'], [R('Total pharmacy sales', 'Management report, pharmacy store lines', 'by store, branch and day', 'Available'), R('Number of bills, average bill value', 'Bill register, OP pharmacy bills', 'OP pharmacy only, ' + reg(), 'Available'), R('Sales returns, refunds, net sales', 'Bill register', 'OP pharmacy returns and refunds', 'Available'), R('Gross margin', 'Management report', 'reported for OP pharmacy; IP margin is reported as 0', 'Available'), R('Cost of goods (estimate)', 'Management report margin', 'No separate cost-of-goods figure is included in this report.', 'Derived'), R('Items sold, item-wise sales', 'Demo item-performance dataset', '20 sample medicine records', 'Demo data'), R('Current stock, stock value, closing stock', 'Demo stock ledger', 'sample quantities, rates and values', 'Demo data'), R('GRN, vendors, purchase returns', 'Demo GRN and vendor register', 'sample purchase and payment records', 'Demo data'), R('Expiry, low stock, transfers, adjustments', 'Demo stock ledger and batches', 'sample alerts and movement records', 'Demo data'), R('Payment type', 'Not included', 'Outside the scope of the pharmacy demo', 'Not included')]));
   }
   function kpiDrawer(kind, P, ss, k) {
     const sp = regSpan(); let h = '';

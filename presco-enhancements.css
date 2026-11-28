@@ -1307,6 +1307,85 @@ table:not(:has(th[data-sort])) thead tr:last-child th:hover {
   color: #0F766E
 }
 
+.pf-health-additions {
+  margin-top: 20px
+}
+
+.pf-health-filter-note {
+  margin: 0 0 16px
+}
+
+.pf-health-additions>h2 {
+  margin: 22px 0 10px
+}
+
+.pf-health-additions>.note {
+  margin: 0 0 12px
+}
+
+.pf-health-additions .pf-clinical-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+}
+
+.pf-health-additions .grid2 {
+  margin-top: 12px
+}
+
+.pf-health-additions svg {
+  display: block;
+  width: 100%;
+  height: auto
+}
+
+.pf-metric-detail {
+  min-width: 0;
+  padding: 14px
+}
+
+.pf-metric-detail summary {
+  cursor: pointer;
+  list-style: none
+}
+
+.pf-metric-detail summary::-webkit-details-marker {
+  display: none
+}
+
+.pf-metric-detail summary .note {
+  margin: 0 0 5px
+}
+
+.pf-metric-detail summary .kpi {
+  margin: 4px 0 6px
+}
+
+.pf-metric-hint {
+  color: var(--teal-d, #0F766E);
+  font-size: 11px;
+  font-weight: 600
+}
+
+.pf-metric-detail[open] {
+  border-color: #99F6E4
+}
+
+.pf-metric-more {
+  border-top: 1px solid var(--rule);
+  margin-top: 12px;
+  padding-top: 10px;
+  overflow: hidden
+}
+
+.pf-metric-more>p {
+  font-size: 12px;
+  line-height: 1.5
+}
+
+.pf-metric-more .lgscroll {
+  max-width: 100%;
+  overflow-x: auto
+}
+
 th[data-xsort] {
   color: #0F766E !important
 }
@@ -1330,6 +1409,10 @@ button.btn,
 }
 
 @media (max-width:760px) {
+
+  .pf-health-additions .pf-clinical-grid {
+    grid-template-columns: 1fr
+  }
 
   .grid2,
   .grid3 {
@@ -1368,6 +1451,134 @@ button.btn,
   * {
     transition: none !important;
     animation: none !important
+  }
+}
+
+/* ---- equipment & machinery ROI demo ---- */
+.eqroi-demo-banner {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border: 1px solid #F3D58A;
+  border-radius: 10px;
+  background: #FFF8E6;
+  color: #7A5410;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-align: center
+}
+
+.eqroi-reconcile {
+  border-left: 4px solid #D97706
+}
+
+.eqroi-reconcile p {
+  margin: 0 0 6px;
+  color: var(--slate);
+  font-size: 12px;
+  line-height: 1.5
+}
+
+.eqroi-reconcile p:last-child {
+  margin-bottom: 0
+}
+
+.eqroi-charts .card {
+  min-width: 0
+}
+
+.eqroi-chart {
+  display: block;
+  width: 100%;
+  min-height: 100px;
+  overflow: visible;
+  font-family: Inter, Arial, sans-serif
+}
+
+.eqroi-axis {
+  fill: #64748B;
+  font-size: 10px
+}
+
+.eqroi-value {
+  fill: #334155;
+  font-size: 9px;
+  font-weight: 600
+}
+
+.eqroi-legend {
+  display: flex;
+  gap: 14px;
+  margin: 8px 0 0 150px;
+  color: #64748B;
+  font-size: 11px
+}
+
+.eqroi-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px
+}
+
+.eqroi-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px
+}
+
+.eqroi-empty {
+  min-height: 90px;
+  display: grid;
+  place-items: center;
+  text-align: center
+}
+
+.eqroi-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--teal-d, #0F766E);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer
+}
+
+.eqroi-detail {
+  margin-top: 12px;
+  border-color: var(--teal-line, #99F6E4)
+}
+
+.eqroi-detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px
+}
+
+.eqroi-detail-head h2 {
+  margin: 0
+}
+
+.eqroi-detail-sub {
+  margin: 4px 0 12px;
+  color: #64748B;
+  font-size: 12px
+}
+
+.eqroi-detail-kpis {
+  margin: 12px 0
+}
+
+@media (max-width:760px) {
+  .eqroi-legend {
+    margin-left: 0
+  }
+
+  .eqroi-detail-head {
+    flex-direction: column
   }
 }
 

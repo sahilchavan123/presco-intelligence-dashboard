@@ -4299,6 +4299,7 @@
           <button role="tab" id="t-pc" aria-selected="false" aria-controls="p-pc">Compare Doctors</button>
           <button role="tab" id="t-pd" aria-selected="false" aria-controls="p-pd">Department Analysis</button>
           <button role="tab" id="t-roi" aria-selected="false" aria-controls="p-roi">Doctor ROI</button>
+          <button role="tab" id="t-eqroi" aria-selected="false" aria-controls="p-eqroi">Equipment &amp; Machinery ROI</button>
           <button role="tab" id="t-under" aria-selected="false" aria-controls="p-under">Underperformers</button>
           <button role="tab" id="t-newdoc" aria-selected="false" aria-controls="p-newdoc">New doctors</button>
           <button role="tab" id="t-phov" aria-selected="false" aria-controls="p-phov">Pharmacy overview</button>
@@ -4617,6 +4618,9 @@
       <!-- ============ DOCTOR ROI ============ -->
       <section id="p-roi" role="tabpanel" aria-labelledby="t-roi" class="hidden">
         <div id="roiBody"></div>
+      </section>
+      <section id="p-eqroi" role="tabpanel" aria-labelledby="t-eqroi" class="hidden">
+        <div id="eqroiDashboard"></div>
       </section>
 
       <!-- ============ IP DISCHARGES ============ -->
@@ -8837,7 +8841,7 @@
         + '<div id="railTgt"><dt>On target today</dt><dd>—</dd><div class="sub">no daily targets set yet</div></div>';
 
       /* ---------- tabs ---------- */
-      [['t-league', 'p-league'], ['t-dept', 'p-dept'], ['t-er', 'p-er'], ['t-pl', 'p-pl'], ['t-ph', 'p-ph'], ['t-pc', 'p-pc'], ['t-pd', 'p-pd'], ['t-trend', 'p-trend'], ['t-ops', 'p-ops'], ['t-opd', 'p-opd'], ['t-reg', 'p-reg'], ['t-adm', 'p-adm'], ['t-disc', 'p-disc'], ['t-roi', 'p-roi'], ['t-under', 'p-under'], ['t-rules', 'p-rules'], ['t-bill', 'p-bill'], ['t-ipbill', 'p-ipbill'], ['t-erbill', 'p-erbill'], ['t-pharmbill', 'p-pharmbill'], ['t-breg', 'p-breg'], ['t-piv', 'p-piv'], ['t-day', 'p-day'], ['t-hist', 'p-hist'], ['t-group', 'p-group'], ['t-revenue', 'p-revenue'], ['t-oprev', 'p-revenue'], ['t-iprev', 'p-revenue'], ['t-pharmrev', 'p-revenue'], ['t-payers', 'p-payers'], ['t-consultants', 'p-consultants'], ['t-marketing', 'p-marketing'], ['t-clov', 'p-clov'], ['t-clar', 'p-clar'], ['t-clpy', 'p-clpy'], ['t-clrec', 'p-clrec'], ['t-brc', 'p-brc'], ['t-newdoc', 'p-newdoc'], ['t-bdov', 'p-bdov'], ['t-bdfc', 'p-bdfc'], ['t-bddp', 'p-bddp'], ['t-bdwd', 'p-bdwd'], ['t-phov', 'p-phov'], ['t-phsa', 'p-phsa'], ['t-phbr', 'p-phbr'], ['t-phgr', 'p-phgr'], ['t-phst', 'p-phst'], ['t-phit', 'p-phit'], ['t-phpo', 'p-phpo'], ['t-phbi', 'p-phbi'], ['t-mkexec', 'p-mkexec'], ['t-mkrec', 'p-mkrec'], ['t-mkacq', 'p-mkacq']]
+      [['t-league', 'p-league'], ['t-dept', 'p-dept'], ['t-er', 'p-er'], ['t-pl', 'p-pl'], ['t-ph', 'p-ph'], ['t-pc', 'p-pc'], ['t-pd', 'p-pd'], ['t-trend', 'p-trend'], ['t-ops', 'p-ops'], ['t-opd', 'p-opd'], ['t-reg', 'p-reg'], ['t-adm', 'p-adm'], ['t-disc', 'p-disc'], ['t-roi', 'p-roi'], ['t-eqroi', 'p-eqroi'], ['t-under', 'p-under'], ['t-rules', 'p-rules'], ['t-bill', 'p-bill'], ['t-ipbill', 'p-ipbill'], ['t-erbill', 'p-erbill'], ['t-pharmbill', 'p-pharmbill'], ['t-breg', 'p-breg'], ['t-piv', 'p-piv'], ['t-day', 'p-day'], ['t-hist', 'p-hist'], ['t-group', 'p-group'], ['t-revenue', 'p-revenue'], ['t-oprev', 'p-revenue'], ['t-iprev', 'p-revenue'], ['t-pharmrev', 'p-revenue'], ['t-payers', 'p-payers'], ['t-consultants', 'p-consultants'], ['t-marketing', 'p-marketing'], ['t-clov', 'p-clov'], ['t-clar', 'p-clar'], ['t-clpy', 'p-clpy'], ['t-clrec', 'p-clrec'], ['t-brc', 'p-brc'], ['t-newdoc', 'p-newdoc'], ['t-bdov', 'p-bdov'], ['t-bdfc', 'p-bdfc'], ['t-bddp', 'p-bddp'], ['t-bdwd', 'p-bdwd'], ['t-phov', 'p-phov'], ['t-phsa', 'p-phsa'], ['t-phbr', 'p-phbr'], ['t-phgr', 'p-phgr'], ['t-phst', 'p-phst'], ['t-phit', 'p-phit'], ['t-phpo', 'p-phpo'], ['t-phbi', 'p-phbi'], ['t-mkexec', 'p-mkexec'], ['t-mkrec', 'p-mkrec'], ['t-mkacq', 'p-mkacq']]
         .forEach(([tb, pn], i, arr) => {
           $(tb).addEventListener('click', () => {
             arr.forEach(([t2, p2]) => {
@@ -10514,6 +10518,228 @@
             const cur = doc(PF.doc) || byBiz[0]; if (!cur) { host.innerHTML = '<div class="card"><h2>No consultants</h2></div>'; return; } PF.doc = cur.k;
             const pts = months.slice().reverse().map(m => ({ l: m.m.slice(2), v: ((revOf(m)[cur.k] || {}).total || 0) / (m.days || 1) }));
             const parts = cur.split ? [{ t: 'IPD', v: cur.ip, c: '#0D9488' }, { t: 'OPD', v: cur.op, c: '#38BDF8' }, { t: 'Pharmacy', v: cur.ph, c: '#A78BFA' }].filter(q => q.v > 0) : [];
+            const safe = value => String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+            const branchMatches = loc => !PERIOD.branch || normLocKey(loc) === normLocKey(PERIOD.branch);
+            const withinSelectedMonth = date => !!date && date.slice(0, 7) === M.m && inRange(date, PERIOD);
+            const withinDateFilter = date => !!date && inRange(date, PERIOD);
+            const primaryConsultantMatches = record => {
+              if (record.ck === cur.k) return true;
+              const primary = consParts(record.cons || '')[0] || record.cons || '';
+              return !!primary && [dkey(primary, record.loc, record.dept), dkey(primary, record.loc), dkey(primary, '', record.dept)].includes(cur.k);
+            };
+            const uniqueByAdmission = (records, dateField) => {
+              const byAdmission = new Map(); let missingId = 0;
+              records.forEach(record => {
+                const id = String(record.admn || '').trim();
+                if (!id) { missingId++; return; }
+                const previous = byAdmission.get(id);
+                if (!previous || String(record[dateField] || '') > String(previous[dateField] || '')) byAdmission.set(id, record);
+              });
+              return { rows: [...byAdmission.values()], missingId };
+            };
+            const dayDifference = (admitDate, dischargeDate) => {
+              if (!/^\d{4}-\d{2}-\d{2}$/.test(String(admitDate || '')) || !/^\d{4}-\d{2}-\d{2}$/.test(String(dischargeDate || ''))) return null;
+              const days = (Date.parse(dischargeDate + 'T00:00:00Z') - Date.parse(admitDate + 'T00:00:00Z')) / 86400000;
+              return Number.isFinite(days) && days >= 0 ? days : null;
+            };
+            const admissionsSourceLoaded = (store.adm || []).length > 0;
+            const admissions = uniqueByAdmission((store.adm || []).filter(record =>
+              withinSelectedMonth(record.date) && branchMatches(record.loc) && primaryConsultantMatches(record)), 'date');
+            const allDischarges = uniqueByAdmission((store.disc || []).filter(record =>
+              withinDateFilter(record.ddate) && branchMatches(record.loc) && primaryConsultantMatches(record)), 'ddate');
+            const discharges = uniqueByAdmission(allDischarges.rows.filter(record => record.ddate.slice(0, 7) === M.m), 'ddate');
+            const dischargeDays = discharges.rows.map(record => dayDifference(record.adate, record.ddate));
+            const allDischargeDays = allDischarges.rows.map(record => ({
+              month: record.ddate.slice(0, 7), days: dayDifference(record.adate, record.ddate)
+            }));
+            const validDischargeDays = dischargeDays.filter(days => days !== null);
+            const completeDischargeDates = discharges.missingId === 0 && validDischargeDays.length === discharges.rows.length;
+            const losDays = discharges.rows.length && completeDischargeDates
+              ? validDischargeDays.reduce((sum, days) => sum + days, 0)
+              : (discharges.rows.length === 0 && (store.disc || []).length ? 0 : null);
+            const alos = discharges.rows.length && completeDischargeDates ? losDays / discharges.rows.length : null;
+            const admissionTable = records => records.length ? records.slice().sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 20)
+              .map(record => [record.admn, record.date, locName(record.loc), record.ward || '—']) : [];
+            const dischargeTable = records => records.length ? records.slice().sort((a, b) => String(b.ddate).localeCompare(String(a.ddate))).slice(0, 20)
+              .map(record => [record.admn, record.adate || 'Data Not Available', record.ddate, record.dtype || '—', dayDifference(record.adate, record.ddate) == null ? 'Data Not Available' : num(dayDifference(record.adate, record.ddate))]) : [];
+            const tableHtml = (headers, rows, total) => rows.length
+              ? `<p class="note">Showing ${rows.length} of ${num(total)} matching source records. Patient names and UMRs are not displayed.</p><div class="lgscroll"><table class="btx"><thead><tr>${headers.map(header => `<th>${safe(header)}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(cell => `<td>${safe(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+              : '<p class="note">No underlying records match this selection.</p>';
+            const metricDetail = (label, value, note, formula, source) => `<details class="card pf-metric-detail"><summary><p class="note">${safe(label)}</p><p class="kpi">${safe(value)}</p><p class="note">${safe(note)}</p><span class="pf-metric-hint">Click for formula and source records</span></summary><div class="pf-metric-more"><p><b>Formula:</b> ${safe(formula)}</p>${source}</div></details>`;
+            const chartSvg = (labels, series, formatter, alt) => {
+              const values = series.flatMap(item => item.values.filter(value => Number.isFinite(value)));
+              if (!labels.length || !values.length) return '<p class="note">Data Not Available — no matching source history is loaded.</p>';
+              const W = 560, H = 210, PL = 58, PR = 16, PT = 12, PB = 34;
+              const low = Math.min(0, ...values), high = Math.max(1, ...values), span = high - low || 1;
+              const x = index => labels.length === 1 ? PL + (W - PL - PR) / 2 : PL + index * (W - PL - PR) / (labels.length - 1);
+              const y = value => PT + (H - PT - PB) * (1 - (value - low) / span);
+              let grid = '';
+              for (let i = 0; i <= 3; i++) {
+                const value = low + span * i / 3, yy = y(value);
+                grid += `<line x1="${PL}" x2="${W - PR}" y1="${yy}" y2="${yy}" stroke="#E2E8F0"/><text x="${PL - 7}" y="${yy + 4}" text-anchor="end" font-size="10" fill="#64748B" font-family="Inter">${safe(formatter(value))}</text>`;
+              }
+              const colors = ['#0D9488', '#2563EB'];
+              const lines = series.map((item, seriesIndex) => {
+                let path = '', segment = [];
+                const flush = () => { if (segment.length) { path += 'M' + segment.map(point => point.x + ' ' + point.y).join(' L'); segment = []; } };
+                item.values.forEach((value, index) => {
+                  if (!Number.isFinite(value)) { flush(); return; }
+                  segment.push({ x: x(index), y: y(value) });
+                });
+                flush();
+                const dots = item.values.map((value, index) => Number.isFinite(value)
+                  ? `<circle cx="${x(index)}" cy="${y(value)}" r="3.5" fill="#fff" stroke="${colors[seriesIndex % colors.length]}" stroke-width="2"><title>${safe(item.name)} · ${safe(labels[index])} · ${safe(formatter(value))}</title></circle>`
+                  : '').join('');
+                return `<path d="${path}" fill="none" stroke="${colors[seriesIndex % colors.length]}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
+              }).join('');
+              const xLabels = labels.map((label, index) => {
+                const date = new Date(label + '-01T00:00:00');
+                const month = Number.isNaN(date.getTime()) ? label : date.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+                return `<text x="${x(index)}" y="${H - 10}" text-anchor="middle" font-size="9.5" fill="#64748B" font-family="Inter">${safe(month)}</text>`;
+              }).join('');
+              const legend = series.length > 1 ? `<div class="legend">${series.map((item, index) => `<span><i class="sw" style="background:${colors[index % colors.length]}"></i>${safe(item.name)}</span>`).join('')}</div>` : '';
+              return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${safe(alt)}">${grid}${lines}${xLabels}</svg>${legend}`;
+            };
+            const dischargeMonths = {};
+            allDischargeDays.forEach(item => {
+              if (!item.month) return;
+              const month = dischargeMonths[item.month] = dischargeMonths[item.month] || { days: 0, count: 0, missing: 0 };
+              if (item.days == null) month.missing++; else { month.days += item.days; month.count++; }
+            });
+            const alosMonths = Object.keys(dischargeMonths).sort().slice(-12);
+            const alosValues = alosMonths.map(month => {
+              const item = dischargeMonths[month];
+              return item.missing === 0 && item.count ? item.days / item.count : null;
+            });
+
+            const registerRows = btRows(store);
+            const registerLoaded = registerRows.length > 0;
+            const billNetAmount = row => /^Refund/i.test(String(row.type || ''))
+              ? -Math.abs(Number(row.refund) || Number(row.paid) || Number(row.net) || 0)
+              : Number(row.net) || 0;
+            const billRows = [], missingBillByMonth = {};
+            const seenBills = new Set();
+            registerRows.forEach(row => {
+              const date = row.bdate, tran = String(row.tran || '').toUpperCase(), type = String(row.type || '');
+              const baseType = type.replace(/^Refund-?\s*/i, '');
+              if (!withinDateFilter(date) || !branchMatches(row.loc) || (tran !== 'OP' && tran !== 'IP') ||
+                /pharmacy/i.test(baseType) || /^Registration/i.test(baseType) || !btActive(row) ||
+                /-\s*(CANCEL|DELETED)$/i.test(type)) return;
+              const parts = consParts(row.doc).length ? consParts(row.doc) : [row.doc];
+              const keys = parts.map(name => dkey(name, row.loc, row.dept)).filter(Boolean);
+              const selectedIndex = keys.indexOf(cur.k);
+              if (selectedIndex < 0) return;
+              let factors = keys.map((key, index) => index === 0 ? 1 : 0);
+              if (keys.length > 1) {
+                const rule = (RULES.share || {})[keys.slice().sort().join(' + ')] || { mode: (RULES.shareDefault || {}).reg || 'first' };
+                if (rule.mode === 'equal') factors = keys.map(() => 1 / keys.length);
+                else if (rule.mode === 'custom') {
+                  const raw = keys.map(key => +((rule.pct || {})[key]) || 0), total = raw.reduce((sum, value) => sum + value, 0);
+                  if (total > 0) factors = raw.map(value => value / total);
+                }
+              }
+              const share = factors[selectedIndex] || 0;
+              if (!share) return;
+              const month = date.slice(0, 7), bill = String(row.bill || '').trim();
+              if (!bill) { missingBillByMonth[month] = (missingBillByMonth[month] || 0) + 1; return; }
+              const uniqueBill = `${date}|${normLocKey(row.loc)}|${bill}`;
+              if (seenBills.has(uniqueBill)) return;
+              seenBills.add(uniqueBill);
+              billRows.push(Object.assign({}, row, { doctorShare: share, doctorNet: billNetAmount(row) }));
+            });
+            const selectedBills = billRows.filter(row => row.bdate.slice(0, 7) === M.m);
+            const channelMetrics = tran => {
+              const rows = selectedBills.filter(row => String(row.tran || '').toUpperCase() === tran);
+              const missingBill = missingBillByMonth[M.m] || 0;
+              const missingUmr = rows.filter(row => !String(row.umr || '').trim() || /^[-./]+$/.test(String(row.umr || '').trim())).length;
+              const patients = new Set(rows.map(row => String(row.umr || '').trim().toUpperCase()).filter(umr => umr && !/^[-./]+$/.test(umr)));
+              const revenue = registerLoaded && !missingBill ? rows.reduce((sum, row) => sum + row.doctorNet * row.doctorShare, 0) : null;
+              const uniquePatients = registerLoaded && !missingBill && !missingUmr ? patients.size : null;
+              return { rows, revenue, uniquePatients, missingUmr, missingBill };
+            };
+            const opdMetrics = channelMetrics('OP'), ipdMetrics = channelMetrics('IP');
+            const overallRows = [...opdMetrics.rows, ...ipdMetrics.rows];
+            const overallMissingUmr = overallRows.filter(row => !String(row.umr || '').trim() || /^[-./]+$/.test(String(row.umr || '').trim())).length;
+            const overallPatients = new Set(overallRows.map(row => String(row.umr || '').trim().toUpperCase()).filter(umr => umr && !/^[-./]+$/.test(umr)));
+            const overallRevenue = registerLoaded && !(missingBillByMonth[M.m] || 0)
+              ? overallRows.reduce((sum, row) => sum + row.doctorNet * row.doctorShare, 0) : null;
+            const overallUnique = registerLoaded && !(missingBillByMonth[M.m] || 0) && !overallMissingUmr ? overallPatients.size : null;
+            const arpp = (revenue, patients) => revenue != null && patients > 0 ? revenue / patients : null;
+            const billTable = rows => rows.slice().sort((a, b) => String(b.bdate).localeCompare(String(a.bdate))).slice(0, 20)
+              .map(row => [row.bill, row.bdate, row.type, R(row.doctorNet * row.doctorShare)]);
+            const overallBillTable = rows => rows.slice().sort((a, b) => String(b.bdate).localeCompare(String(a.bdate))).slice(0, 20)
+              .map(row => [row.bill, row.bdate, row.tran, row.type, R(row.doctorNet * row.doctorShare)]);
+            const formatArpp = value => value == null ? 'Data Not Available' : R(value);
+            const channelDetails = (label, metric) => tableHtml(
+              ['Bill number', 'Bill date', 'Bill type', 'Net revenue'],
+              billTable(metric.rows), metric.rows.length
+            );
+            const snapshots = (store.snapshots || []).filter(snapshot => snapshot && snapshot.asOf && snapshot.data && snapshot.data.kpi &&
+              snapshot.asOf.slice(0, 7) === M.m && withinDateFilter(snapshot.asOf))
+              .sort((a, b) => String(a.asOf).localeCompare(String(b.asOf)));
+            const oneDayPeriod = ['latest', 'single'].includes(PERIOD.preset) && PERIOD.from && PERIOD.from === PERIOD.to;
+            const reportMonthToDate = PERIOD.preset === 'all' ||
+              (PERIOD.from === M.m + '-01' && PERIOD.to && PERIOD.to.slice(0, 7) === M.m);
+            const selectedSnapshot = PERIOD.branch || (!oneDayPeriod && !reportMonthToDate) ? null : snapshots[snapshots.length - 1];
+            const selectedKpi = selectedSnapshot && selectedSnapshot.data.kpi;
+            const reportColumn = oneDayPeriod ? 'today' : 'mtd';
+            const reportPeriodName = oneDayPeriod ? 'daily' : 'month-to-date';
+            const reportedIpRevenue = selectedKpi && selectedKpi.ip && Number.isFinite(selectedKpi.ip[reportColumn]) ? selectedKpi.ip[reportColumn] : null;
+            const reportedArpob = selectedKpi && selectedKpi.arpob && Number.isFinite(selectedKpi.arpob[reportColumn]) ? selectedKpi.arpob[reportColumn] : null;
+            const arpobHistory = {};
+            (store.snapshots || []).filter(snapshot => !PERIOD.branch && snapshot && snapshot.asOf && withinDateFilter(snapshot.asOf) &&
+              snapshot.data && snapshot.data.kpi && snapshot.data.kpi.arpob && Number.isFinite(snapshot.data.kpi.arpob.mtd))
+              .forEach(snapshot => {
+                const month = snapshot.asOf.slice(0, 7);
+                if (!arpobHistory[month] || snapshot.asOf > arpobHistory[month].asOf) {
+                  arpobHistory[month] = { asOf: snapshot.asOf, value: snapshot.data.kpi.arpob.mtd };
+                }
+              });
+            const arpobMonths = Object.keys(arpobHistory).sort().slice(-12);
+            const snapshotTable = selectedSnapshot ? tableHtml(
+              ['Management report date', `Hospital IPD revenue (${reportPeriodName})`, `Reported hospital ARPOB (${reportPeriodName})`],
+              [[selectedSnapshot.asOf, reportedIpRevenue == null ? 'Data Not Available' : R(reportedIpRevenue),
+                reportedArpob == null ? 'Data Not Available' : R(reportedArpob)]], 1
+            ) : '<p class="note">Data Not Available — no matching management report ARPOB record is available for this month/branch/date selection.</p>';
+            const admissionCount = admissionsSourceLoaded && !admissions.missingId ? num(admissions.rows.length) : 'Data Not Available';
+            const dischargedCount = (store.disc || []).length && !discharges.missingId ? num(discharges.rows.length) : 'Data Not Available';
+            const losValue = (store.disc || []).length && losDays != null ? num(losDays) + ' days' : 'Data Not Available';
+            const alosValue = alos == null ? 'Data Not Available' : alos.toFixed(2) + ' days';
+            const selectedAdmissionsTable = tableHtml(['Admission number', 'Admission date', 'Branch', 'Ward'],
+              admissionTable(admissions.rows), admissions.rows.length);
+            const selectedDischargesTable = tableHtml(['Admission number', 'Admission date', 'Discharge date', 'Discharge type', 'Stay from dates'],
+              dischargeTable(discharges.rows), discharges.rows.length);
+            const losFormula = 'Total (discharge date − admission date) days for unique discharged IPD admissions.';
+            const alosFormula = 'Total Length of Stay Days ÷ Total Discharged Patients with valid admission and discharge dates.';
+            const currentMonthBillsMissing = !!(missingBillByMonth[M.m] || 0);
+            const amountValue = metric => metric.revenue == null ? 'Data Not Available' : R(metric.revenue);
+            const patientValue = metric => metric.uniquePatients == null ? 'Data Not Available' : num(metric.uniquePatients);
+            const sourceRows = metric => !registerLoaded
+              ? '<p class="note">Data Not Available — load the actual bill-type register with consultant and UMR fields.</p>'
+              : metric.missingBill
+                ? '<p class="note">Data Not Available — one or more eligible billing rows have no bill number for duplicate-safe reconciliation.</p>'
+                : channelDetails('', metric);
+            const overallSource = !registerLoaded
+              ? '<p class="note">Data Not Available — load the actual bill-type register with bill numbers, channels, and UMR fields.</p>'
+              : currentMonthBillsMissing
+                ? '<p class="note">Data Not Available — an eligible bill row has no bill number for duplicate-safe reconciliation.</p>'
+                : tableHtml(['Bill number', 'Bill date', 'Channel', 'Bill type', 'Net revenue'],
+                  overallBillTable(overallRows), overallRows.length);
+            const uniquePatientsSource = !registerLoaded
+              ? '<p class="note">Data Not Available — load the actual bill-type register with UMR fields.</p>'
+              : currentMonthBillsMissing || overallMissingUmr
+                ? '<p class="note">Data Not Available — bill numbers or UMRs are missing from eligible rows.</p>'
+                : tableHtml(['Billing channel', 'Eligible bills', 'Unique patients'],
+                  [['OPD', num(opdMetrics.rows.length), patientValue(opdMetrics)], ['IPD', num(ipdMetrics.rows.length), patientValue(ipdMetrics)]], overallRows.length);
+            const arppTrendMonths = [...new Set(billRows.map(row => row.bdate.slice(0, 7)))].sort().slice(-12);
+            const monthlyArpp = tran => arppTrendMonths.map(month => {
+              const rows = billRows.filter(row => row.bdate.slice(0, 7) === month && String(row.tran || '').toUpperCase() === tran);
+              if (missingBillByMonth[month]) return null;
+              const hasMissingId = rows.some(row => !String(row.umr || '').trim() || /^[-./]+$/.test(String(row.umr || '').trim()));
+              const unique = new Set(rows.map(row => String(row.umr || '').trim().toUpperCase()).filter(umr => umr && !/^[-./]+$/.test(umr)));
+              const revenue = rows.reduce((sum, row) => sum + row.doctorNet * row.doctorShare, 0);
+              return rows.length && !hasMissingId && unique.size ? revenue / unique.size : null;
+            });
             const notes = []; if (!cur.p) notes.push('No compensation model is set for this consultant. Set it on the Doctor ROI tab to see payout, net contribution and ROI.');
             else if (cur.roi && cur.roi < thr) notes.push(`ROI of ${cur.roi.toFixed(2)}× is below the ${thr}× safety line. Consider fee-for-service terms or reviewing the fixed part.`);
             if (cur.tr != null && cur.tr < -10) notes.push(`Business per day is down ${Math.abs(cur.tr).toFixed(1)}% on ${Mp.m}. Check OPD footfall and referral leakage.`);
@@ -10523,6 +10749,40 @@
             html = `<div class="controls">${sel('Consultant', 'doc', byBiz.map(r => [r.k, prettyName(r.k) + ' — ' + (r.dept || '')]), cur.k)}${mSel}</div>
   <div class="pf-hero"><span class="pf-av lg">${ini(cur.name)}</span><div><b>${prettyName(cur.k)}</b><span>${cur.dept || ''} · ${M.m}</span></div>${vb(cur)}</div>
   <div class="grid3" style="margin-top:0">${kp('OPD visits', cur.opd || '—', '')}${kp('IP admissions', cur.adm || '—', '')}${kp('Business given', R(cur.total), tb(cur.tr))}${kp('Payout taken', R(cur.pay), '')}${kp('Net contribution', R(cur.net), cur.roi ? 'ROI ' + cur.roi.toFixed(2) + '×' : '')}${kp('Avg revenue / OPD visit', cur.opd ? R(cur.total / cur.opd) : '—', '')}</div>
+  <div class="pf-health-additions">
+    <p class="note pf-health-filter-note">Clinical and patient metrics use the selected consultant and month above, plus the dashboard’s existing date and branch filters.</p>
+    <h2>Clinical Performance</h2>
+    <div class="grid3 pf-clinical-grid">
+      ${metricDetail('Total IPD Admissions', admissionCount, 'Unique admissions attributed to the first-named consultant.', 'Count distinct admission numbers on the admission date within the selected month, branch, and date range.', selectedAdmissionsTable)}
+      ${metricDetail('Discharged Patients', dischargedCount, 'Unique discharged IPD admissions.', 'Count distinct admission numbers with a discharge date in the selected month, branch, and date range.', selectedDischargesTable)}
+      ${metricDetail('Total Length of Stay', losValue, completeDischargeDates ? 'Calculated from actual admission and discharge dates.' : 'Data Not Available when either date is missing or invalid.', losFormula, selectedDischargesTable)}
+      ${metricDetail('ALOS (Days)', alosValue, discharges.rows.length ? `${num(discharges.rows.length)} discharged patients in this selection.` : 'No discharged patients in this selection.', alosFormula, selectedDischargesTable)}
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Monthly ALOS Trend</h2>${chartSvg(alosMonths, [{ name: 'ALOS (days)', values: alosValues }], value => value.toFixed(1) + ' days', 'Monthly average length of stay') }<p class="note">Uses actual admission and discharge dates for discharged IPD records.</p></div>
+    </div>
+    <h2>Revenue Efficiency</h2>
+    <p class="note">ARPOB is shown hospital-wide from the management report because bed occupancy is not attributed to individual consultants in the available records.</p>
+    <div class="grid3">
+      ${metricDetail('Total IPD Revenue (Hospital-wide)', reportedIpRevenue == null ? 'Data Not Available' : R(reportedIpRevenue), selectedSnapshot ? `Management report ${reportPeriodName} as of ${selectedSnapshot.asOf}. Not consultant/branch-specific.` : 'Data Not Available for this month, branch, or date selection.', `Hospital IPD net revenue reported ${reportPeriodName}.`, snapshotTable)}
+      ${metricDetail('Occupied Bed Days', 'Data Not Available', 'The available reports do not provide occupied bed-day totals.', 'ARPOB denominator: sum of actual occupied bed days. Not estimated from bed capacity, admissions, or discharges.', snapshotTable)}
+      ${metricDetail('ARPOB (Hospital-wide, ₹)', reportedArpob == null ? 'Data Not Available' : R(reportedArpob) + ' / bed day', selectedSnapshot ? `Reported hospital ARPOB, ${reportPeriodName} as of ${selectedSnapshot.asOf}; not doctor-wise.` : 'Data Not Available — no matching management report metric.', 'Total Net IPD Revenue ÷ Total Occupied Bed Days. The report supplies ARPOB directly; occupied bed days are not separately present, so no denominator is inferred.', snapshotTable)}
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Monthly ARPOB Trend (Hospital-wide)</h2>${chartSvg(arpobMonths, [{ name: 'Reported ARPOB (₹/bed day)', values: arpobMonths.map(month => arpobHistory[month].value) }], value => R(value), 'Monthly hospital-wide ARPOB trend')}<p class="note">Reported month-to-date ARPOB snapshots only; unavailable for a selected branch because the source is hospital-wide.</p></div>
+    </div>
+    <h2>Revenue Per Patient</h2>
+    <p class="note">Net OPD/IPD revenue uses each bill’s net amount and subtracts refund transactions; pharmacy, registration, canceled, and inactive rows are excluded. Shared-consultant revenue follows the existing attribution rules.</p>
+    <div class="grid3">
+      ${metricDetail('OPD ARPP (₹)', formatArpp(arpp(opdMetrics.revenue, opdMetrics.uniquePatients)), `Net OPD revenue ${amountValue(opdMetrics)} · unique OPD patients ${patientValue(opdMetrics)}.`, 'Net OPD revenue ÷ distinct UMRs in eligible OP billing rows.', sourceRows(opdMetrics))}
+      ${metricDetail('IPD ARPP (₹)', formatArpp(arpp(ipdMetrics.revenue, ipdMetrics.uniquePatients)), `Net IPD revenue ${amountValue(ipdMetrics)} · unique IPD patients ${patientValue(ipdMetrics)}.`, 'Net IPD revenue ÷ distinct UMRs in eligible IP billing rows.', sourceRows(ipdMetrics))}
+      ${metricDetail('Overall ARPP (₹)', formatArpp(arpp(overallRevenue, overallUnique)), `Combined OPD/IPD revenue ${overallRevenue == null ? 'Data Not Available' : R(overallRevenue)} · unique patients ${overallUnique == null ? 'Data Not Available' : num(overallUnique)}.`, 'Combined net OPD and IPD revenue ÷ distinct UMRs across both channels; a patient with both OPD and IPD activity is counted once.', overallSource)}
+      ${metricDetail('Unique Patient Count (OPD + IPD)', overallUnique == null ? 'Data Not Available' : num(overallUnique), 'Distinct patients across the selected consultant, month, branch, and date range.', 'Count distinct UMRs across eligible OPD and IPD records; overlap between OPD and IPD is counted once.', uniquePatientsSource)}
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Monthly OPD ARPP vs IPD ARPP</h2>${chartSvg(arppTrendMonths, [{ name: 'OPD ARPP (₹)', values: monthlyArpp('OP') }, { name: 'IPD ARPP (₹)', values: monthlyArpp('IP') }], value => R(value), 'Monthly OPD and IPD average revenue per patient')}<p class="note">Distinct UMRs are counted separately for OPD and IPD; chart months are limited to months with eligible bill-register rows.</p></div>
+    </div>
+  </div>
   <div class="grid2"><div class="card"><h2>Business per day, by month</h2>${line(pts)}</div><div class="card"><h2>Revenue mix</h2>${parts.length ? donut(parts) : '<p class="note">IP / OP split needs the bill register for this month.</p>'}</div></div>
   <div class="grid2"><div class="card"><h2>Profit and loss</h2><table class="btx"><tbody>${line2('IPD treatment revenue', cur.split ? R(cur.ip) : '—')}${line2('OPD consultation revenue', cur.split ? R(cur.op) : '—')}${line2('Pharmacy', cur.split ? R(cur.ph) : '—')}${line2('<b>Total business</b>', '<b>' + R(cur.total) + '</b>', 1)}${cur.p ? cur.p.lines.map(t => line2(t, '')).join('') : ''}${line2('<b>Consultant payout</b>', '<b>' + R(cur.pay) + '</b>', 1)}${line2('<b>Net contribution</b>', '<b>' + R(cur.net) + '</b>', 1)}</tbody></table></div>
   <div class="card"><h2>Advisor notes</h2><ul class="pf-notes">${notes.map(t => `<li>${t}</li>`).join('')}</ul></div></div>`;
@@ -12444,14 +12704,16 @@
       var old = document.getElementById('topnav'); if (old) old.remove();
       var D = window.__D || {};
       var HIDDEN_TABS = ['t-league', 't-dept', 't-trend'];
-      var G = [['Revenue', 'Hospital, department, ER and trend analysis', ['t-revenue', 't-oprev', 't-iprev', 't-er', 't-pharmrev', 't-payers', 't-brc', 't-league', 't-dept', 't-trend', 't-ops']], ['Patients', 'OPD, registrations, admissions and discharges', ['t-opd', 't-reg', 't-adm', 't-disc']], ['Doctors', 'Consultant performance, ROI and analysis', ['t-pl', 't-ph', 't-pc', 't-pd', 't-consultants', 't-roi', 't-under']], ['Marketing', 'Targets, referrals and patient acquisition', ['t-marketing', 't-mkexec', 't-mkrec', 't-mkacq']], ['Pharmacy Analytics', 'Pharmacy sales, branches, GRN, vendors and stock', ['t-phov', 't-phsa', 't-phbr', 't-phgr', 't-phpo', 't-phst', 't-phit', 't-phbi'], 1], ['Claims Management', 'Claims, receivables, payer-wise claims and collections', ['t-clov', 't-clar', 't-clpy', 't-clrec'], 1], ['Bed Management & Forecasting', 'Bed occupancy, forecast and discharge pipeline', ['t-bdov', 't-bdfc', 't-bddp', 't-bdwd'], 1], ['Billing', 'OP, IP, ER module and Pharmacy billing, bill register and pivots', ['t-bill', 't-ipbill', 't-erbill', 't-pharmbill', 't-breg', 't-piv']], ['Tools', 'Dates, history, groups and corrections', ['t-day', 't-hist', 't-group', 't-rules']]];
+      var HIDE_SIDEBAR_SUBMENUS = ['t-phov', 't-clov', 't-bdov'];
+      var G = [['Revenue', 'Hospital, department, ER and trend analysis', ['t-revenue', 't-oprev', 't-iprev', 't-er', 't-pharmrev', 't-payers', 't-brc', 't-league', 't-dept', 't-trend', 't-ops']], ['Patients', 'OPD, registrations, admissions and discharges', ['t-opd', 't-reg', 't-adm', 't-disc']], ['Doctors', 'Consultant performance, ROI and analysis', ['t-pl', 't-ph', 't-pc', 't-pd', 't-consultants', 't-roi', 't-under']], ['Equipment & Machinery', 'Equipment assets, billing, operating costs and investment recovery', ['t-eqroi']], ['Marketing', 'Targets, referrals and patient acquisition', ['t-marketing', 't-mkexec', 't-mkrec', 't-mkacq']], ['Pharmacy Analytics', 'Pharmacy sales, branches, GRN, vendors and stock', ['t-phov', 't-phsa', 't-phbr', 't-phgr', 't-phpo', 't-phst', 't-phit', 't-phbi'], 1], ['Claims Management', 'Claims, receivables, payer-wise claims and collections', ['t-clov', 't-clar', 't-clpy', 't-clrec'], 1], ['Bed Management & Forecasting', 'Bed occupancy, forecast and discharge pipeline', ['t-bdov', 't-bdfc', 't-bddp', 't-bdwd'], 1], ['Billing', 'OP, IP, ER module and Pharmacy billing, bill register and pivots', ['t-bill', 't-ipbill', 't-erbill', 't-pharmbill', 't-breg', 't-piv']], ['Tools', 'Dates, history, groups and corrections', ['t-day', 't-hist', 't-group', 't-rules']]];
       HIDDEN_TABS.forEach(function (id) { var ob = document.getElementById(id); if (ob) ob.classList.add('sb-hide') });
       D['t-marketing'] = 'Targets against achievement, funnel, sources and revenue.'; D['t-mkexec'] = 'Assign targets and manage marketing executives.'; D['t-mkrec'] = 'Every referral record with UHID, source and revenue.'; D['t-mkacq'] = 'New vs returning patients and branch-wise acquisition.';
-      D['t-phpo'] = 'DEMO DATA: purchase orders, approvals, vendors, delays and PO to GRN conversion.'; D['t-phbi'] = 'DEMO DATA: compare medicine sales, stock and movement across branches.'; D['t-phov'] = 'Pharmacy sales, returns, margin and what each store sold.'; D['t-phsa'] = 'Today, yesterday, weekly, monthly, yearly and custom sales with year to month to day drill-down.'; D['t-phbr'] = 'Branch-wise pharmacy sales, bills and comparison.'; D['t-phgr'] = 'GRN and vendor analysis. Needs the GRN feed.'; D['t-phst'] = 'Stock movement and reconciliation. Needs the stock ledger.'; D['t-phit'] = 'Top and bottom items. Needs bill line items.';
+      D['t-phpo'] = 'DEMO DATA: purchase orders, approvals, vendors, delays and PO to GRN conversion.'; D['t-phbi'] = 'DEMO DATA: compare medicine sales, stock and movement across branches.'; D['t-phov'] = 'Pharmacy sales, returns, margin and what each store sold.'; D['t-phsa'] = 'Today, yesterday, weekly, monthly, yearly and custom sales with year to month to day drill-down.'; D['t-phbr'] = 'Branch-wise pharmacy sales, bills and comparison.'; D['t-phgr'] = 'GRN and vendor analysis from a clearly labeled sample dataset separate from live hospital records.'; D['t-phst'] = 'Stock movement, branch/store summaries and expiry alerts from a clearly labeled sample dataset.'; D['t-phit'] = 'Medicine sales rankings and item performance from a clearly labeled sample dataset.';
       D['t-clov'] = 'Total, settled, part-received and pending claims, amounts, and money received in the last 3, 10 and 30 days.'; D['t-bdov'] = 'Total, available, occupied and maintenance beds with ward-wise activity.'; D['t-bdfc'] = '7, 14 and 28 day occupancy forecast with a 95% range, plus admission and discharge balance.'; D['t-bddp'] = 'Expected discharges and length of stay.'; D['t-bdwd'] = 'Bed demand and expected arrivals by ward.'; D['t-clar'] = 'Receivables outstanding and how old they are.'; D['t-clpy'] = 'Claims, receipts and outstanding by TPA, insurance, scheme, payer and branch.'; D['t-clrec'] = 'Every claim bill with its status and age.'; D['t-brc'] = 'Compare branches on revenue, patients, ARPP and outstanding.'; D['t-newdoc'] = 'Doctors who started billing recently and how they are ramping up.';
       D['t-ipbill'] = 'IP final, general and package billing totals.';
       D['t-erbill'] = 'ER module billing totals from the bill-type register.';
       D['t-pharmbill'] = 'OP, Casualty, and IP pharmacy billing totals from available register data.';
+      D['t-eqroi'] = 'Equipment-only ROI using an isolated, clearly labelled demo dataset; it is separate from hospital records and live transactions.';
       D['t-oprev'] = 'Outpatient revenue from registered OP bill types.';
       D['t-iprev'] = 'Inpatient revenue from registered IP bill types.';
       D['t-pharmrev'] = 'Pharmacy revenue from available OP, Casualty, and IP bill types.';
@@ -12461,8 +12723,8 @@
       G.forEach(function (g, gi) {
         var b = document.createElement('button'); b.type = 'button'; b.className = 'sd-i'; b.innerHTML = '<span>' + g[0] + '</span>';
         var fb = document.getElementById(g[2][0]); if (fb) b.style.setProperty('--ico', getComputedStyle(fb).getPropertyValue('--ico'));
-        b.onclick = function () { if (g[3] && b.classList.contains('on')) { subs[gi].classList.toggle('collapsed'); return } var id = last[gi]; if (!id || HIDDEN_TABS.indexOf(id) > -1) id = g[2][0]; var t = document.getElementById(id); if (t) t.click(); window.scrollTo({ top: 0 }) }; side.appendChild(b); items.push(b);
-        if (g[3]) { b.classList.add('has-sub'); var sb = document.createElement('div'); sb.className = 'sd-sub'; g[2].forEach(function (id) { var ob = document.getElementById(id); if (!ob) return; var x = document.createElement('button'); x.type = 'button'; x.dataset.t = id; x.textContent = ob.textContent.trim(); x.onclick = function () { ob.click(); window.scrollTo({ top: 0 }) }; sb.appendChild(x) }); side.appendChild(sb); subs[gi] = sb }
+        b.onclick = function () { if (subs[gi] && b.classList.contains('on')) { subs[gi].classList.toggle('collapsed'); return } var id = last[gi]; if (!id || HIDDEN_TABS.indexOf(id) > -1) id = g[2][0]; var t = document.getElementById(id); if (t) t.click(); window.scrollTo({ top: 0 }) }; side.appendChild(b); items.push(b);
+        if (g[3] && HIDE_SIDEBAR_SUBMENUS.indexOf(g[2][0]) < 0) { b.classList.add('has-sub'); var sb = document.createElement('div'); sb.className = 'sd-sub'; g[2].forEach(function (id) { var ob = document.getElementById(id); if (!ob) return; var x = document.createElement('button'); x.type = 'button'; x.dataset.t = id; x.textContent = ob.textContent.trim(); x.onclick = function () { ob.click(); window.scrollTo({ top: 0 }) }; sb.appendChild(x) }); side.appendChild(sb); subs[gi] = sb }
       });
       var col = document.createElement('button'); col.type = 'button'; col.className = 'sd-col'; col.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg><span>Collapse</span>';
       col.onclick = function () { document.body.classList.toggle('mini'); try { localStorage.setItem('presco-mini', document.body.classList.contains('mini') ? '1' : '0') } catch (e) { } };
